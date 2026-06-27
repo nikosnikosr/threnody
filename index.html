@@ -113,7 +113,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b23</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b25</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -129,13 +129,6 @@
   <p id="lorebody">—</p>
   <p id="lorekit" style="color:#7a5520;font-size:11px"></p>
   <button id="loreback" class="alt">◂ BACK</button>
-</div>
-
-<div class="screen hidden" id="herosheet">
-  <div class="rune" id="hs_tag">⟡ PARTY MEMBER ⟡</div>
-  <h2 id="hs_name" style="font-size:16px">—</h2>
-  <p id="hs_body" style="text-align:left;font-size:13px;line-height:1.9"></p>
-  <button id="hs_back">◂ BACK TO ARMORY</button>
 </div>
 
 <div class="screen hidden" id="gameover">
@@ -589,7 +582,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b23";
+const BUILD="b25";
   const REDUCE=(()=>{try{return window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){return false;}})();
 const motes=[];
 for(let i=0;i<14;i++)motes.push({x:Math.random()*W,y:Math.random()*H,v:0.12+Math.random()*0.25,a:0.08+Math.random()*0.16});
@@ -1311,7 +1304,14 @@ function boonLine(p){
   if(p.lifesteal)b.push("Vampire×"+p.lifesteal);
   return b.length?`<span style="color:#62e6d4">${b.join(" · ")}</span><br>`:"";
 }
+let __charSheetReturn="explore";
 function showCharSheet(p){
+  // Remember what screen is currently showing so BACK returns there (not always the dungeon).
+  const hdr=document.querySelector("#actorline");
+  const htxt=hdr?hdr.textContent:"";
+  if(/THE ARMORY/.test(htxt))__charSheetReturn="armory";
+  else if(/MERCHANT BONES/.test(htxt))__charSheetReturn="shop";
+  else __charSheetReturn="explore";
   const unlocks=SKILL_UNLOCKS[p.id];
   const next=unlocks.find(([l])=>l>p.lvl);
   const needXp=p.lvl<MAXLVL?xpForLevel(p.lvl+1)-S.xp:0;
@@ -1334,7 +1334,13 @@ function showCharSheet(p){
     sfx.loot();log(p.name+" drinks a potion (+20 HP).","good");
     renderHud();renderParty();showCharSheet(p);
   };
-  document.getElementById("csback").onclick=()=>{renderParty();showExploreControls();};
+  document.getElementById("csback").onclick=()=>{
+    renderParty();
+    // Return to wherever we came from: the armory/shop if we were shopping, else the dungeon.
+    if(__charSheetReturn==="armory"){showShopControls("armory");}
+    else if(__charSheetReturn==="shop"){showShopControls("main");}
+    else{showExploreControls();}
+  };
 }
 
 /* ============================ MOVEMENT ============================ */
@@ -1357,7 +1363,6 @@ function onTap(el,fn){
 }
 
 function showExploreControls(){
-  const hs=document.getElementById("herosheet");if(hs)hs.classList.add("hidden");
   ctl.innerHTML=`
     <div id="dpad">
       <button class="ctl" id="tl" aria-label="Turn left">↰</button>
@@ -1654,26 +1659,8 @@ function showGiveControls(){
 }
 
 /* ============================ INSPECT (from armory) ============================ */
-function showHeroSheet(i){
-  const p=S.party[i];
-  document.getElementById("hs_tag").textContent="⟡ PARTY MEMBER · "+BUILD+" ⟡";
-  document.getElementById("hs_name").textContent=p.name+" · "+p.cls+" · Level "+p.lvl;
-  const boons=[p.critUp?"Bloodlust×"+p.critUp:"",p.acc?"Duelist×"+p.acc:"",p.lifesteal?"Vampire×"+p.lifesteal:"",p.innate?"Stoneskin (+"+p.innate+" armor)":""].filter(Boolean).join(" · ");
-  document.getElementById("hs_body").innerHTML=
-    "<b>HP</b> "+Math.max(0,p.hp)+" / "+p.maxhp+"<br>"+
-    "<b>SP</b> "+p.sp+" / "+p.maxsp+"<br>"+
-    "<b>Weapon</b> "+p.w.name+" +"+p.w.b+" <span style='color:#7d7490'>("+(p.dmin+p.w.b)+"–"+(p.dmax+p.w.b)+" dmg)</span><br>"+
-    "<b>Armor</b> "+p.a.name+" +"+p.a.b+" <span style='color:#7d7490'>(blocks "+(p.a.b+(p.innate||0))+")</span>"+
-    (p.s?"<br><b>Staff</b> "+p.s.name+" +"+p.s.b+" <span style='color:#7d7490'>(+"+p.s.b+" spell power)</span>":"")+
-    (boons?"<br><b style='color:var(--arc)'>Boons</b> <span style='color:var(--arc)'>"+boons+"</span>":"");
-  // Show as an overlay ON TOP of the armory — the armory stays rendered underneath untouched.
-  __lastActionAt=Date.now();   // absorb any bounce from the tap that opened this
-  document.getElementById("herosheet").classList.remove("hidden");
-}
-
 /* ============================ SHOP ============================ */
 function showShopControls(page){
-  const hs=document.getElementById("herosheet");if(hs)hs.classList.add("hidden");
   tip("shop");
   const potP=15+Math.floor(S.depth*1.5),elixP=45+S.depth*2,tonP=20+S.depth,trainP=40+25*S.trains;
   if(page==="main"){
@@ -1692,17 +1679,11 @@ function showShopControls(page){
       return `<button class="act shop" data-s="buy${i}" ${g.sold||S.gold<price?"disabled":""}>
         ${g.sold?"— SOLD —":g.name+" +"+g.b+" · "+price+"g"}<small>${g.slot==="w"?"weapon":g.slot==="a"?"armor":"staff · Orrin only"}</small></button>`;
     }).join("");
-    const heroes=S.party.map((p,i)=>
-      `<button class="act wide" data-hero="${i}" style="text-align:left">${p.name} · ${p.cls} · L${p.lvl}<small>⚔ ${p.w.name} +${p.w.b} · 🛡 ${p.a.name} +${p.a.b}${p.s?` · ✦ ${p.s.name} +${p.s.b}`:""} · tap to view</small></button>`
-    ).join("");
-    ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ THE ARMORY ⟡<small>buy gear, or tap a hero to view their kit · ${BUILD}</small></div>
+    ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ THE ARMORY ⟡<small>weapons &amp; armor · ${BUILD}</small></div>
     <div id="acts">${rows}
-    <div style="grid-column:1 / -1;color:#7a5520;font-size:9px;letter-spacing:2px;text-align:center;margin:4px 0 0">— YOUR PARTY —</div>
-    ${heroes}
     <button class="act wide" data-s="back">◂ BACK</button></div>`;
   }
   ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
-    if(b.dataset.hero!==undefined){showHeroSheet(+b.dataset.hero);return;}
     const s=b.dataset.s;
     if(s==="pot"){S.gold-=potP;S.potions++;sfx.coin();log("Bought a healing potion.","gold");showShopControls("main");}
     else if(s==="elix"){S.gold-=elixP;S.elixirs++;sfx.coin();log("Bought an elixir. Smells like thunderstorms.","gold");showShopControls("main");}
@@ -2429,17 +2410,6 @@ function showLore(id){
   document.getElementById("lorescreen").classList.remove("hidden");
 }
 document.querySelectorAll("button.lore").forEach(b=>b.onclick=()=>showLore(b.dataset.lore));
-function closeHeroSheet(){
-  document.getElementById("herosheet").classList.add("hidden");
-  // Guarantee the armory is the active panel underneath (defensive: force-render it).
-  if(S&&S.shop)showShopControls("armory");
-}
-document.getElementById("hs_back").addEventListener("click",e=>{
-  const now=Date.now();
-  if(now-__lastActionAt<250)return;     // swallow bounce/ghost double-tap
-  __lastActionAt=now;
-  closeHeroSheet();
-});
 document.getElementById("loreback").onclick=()=>{
   document.getElementById("lorescreen").classList.add("hidden");
   document.getElementById("intro").classList.remove("hidden");
