@@ -113,7 +113,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b25</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b30</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -158,7 +158,7 @@ const THEMES=[
   {n:"The Drowned Halls",c:"#62c6e6"},
   {n:"The Abyssal Court",c:"#b88cff"},
   {n:"The Inferno",      c:"#ff6a5a"}];
-function theme(){return THEMES[Math.min(THEMES.length-1,Math.floor((S.depth-1)/5))];}
+function theme(){return THEMES[Math.max(0,Math.min(THEMES.length-1,Math.floor((S.depth-1)/5)))];}
 
 const MON={
   rat:     {name:"Giant Rat",  hp:14, dmin:3, dmax:6,  xp:8,  gold:5},
@@ -183,7 +183,7 @@ const TIERPOOL=[
   ["golem","wraith","necro","brute","ghoul"],
   ["demon","golem","necro","brute","shaman"],
   ["demon","golem","brute","necro","archer"]];
-function poolFor(){return TIERPOOL[Math.min(TIERPOOL.length-1,Math.floor((S.depth-1)/5))];}
+function poolFor(){return TIERPOOL[Math.max(0,Math.min(TIERPOOL.length-1,Math.floor((S.depth-1)/5)))];}
 
 const BOSSES=[
   {art:"golem", name:"THE WARDEN-THAT-WAS",  cry:"A dead garrison captain, still at his post. Vann salutes him before he strikes."},
@@ -333,7 +333,7 @@ const SKILL_DESC={
   "Arcane Surge":"7 SP · a focused blast that scales hard with Orrin's staff.",
   "Disintegrate":"10 SP · massive damage to a single foe."
 };
-function xpForLevel(l){return Math.floor(45*Math.pow(l-1,1.55));}
+function xpForLevel(l){return Math.max(0,Math.round(50*(l-1)*(l-1)-13*(l-1)));}
 const MAXLVL=999;
 
 /* ============================ STATE ============================ */
@@ -582,7 +582,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b25";
+const BUILD="b30";
   const REDUCE=(()=>{try{return window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){return false;}})();
 const motes=[];
 for(let i=0;i<14;i++)motes.push({x:Math.random()*W,y:Math.random()*H,v:0.12+Math.random()*0.25,a:0.08+Math.random()*0.16});
@@ -817,8 +817,8 @@ function drawTileGlyph(c,plane){
 function drawMap(){
   ctx.fillStyle="#050308";ctx.fillRect(0,0,W,H);
   const g=S.grid,rows=g.length,cols=g[0].length;
-  const cs=Math.min((W-30)/cols,(H-34)/rows);
-  const ox=(W-cs*cols)/2,oy=(H-cs*rows)/2+6;
+  const cs=Math.min((W-30)/cols,(H-52)/rows);
+  const ox=(W-cs*cols)/2,oy=(H-cs*rows)/2-2;
   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
     if(!S.visited.has(x+","+y))continue;
     const c=g[y][x],px=ox+x*cs,py=oy+y*cs;
@@ -852,7 +852,42 @@ function drawMap(){
   ctx.restore();
   ctx.fillStyle="#7a5520";ctx.font="10px monospace";ctx.textAlign="center";
   ctx.fillText("— DEPTH "+S.depth+" · "+theme().n.toUpperCase()+" —",CX,12);
-  ctx.fillText("$ shop · ? riddle · ‡ door · ⚷ key · ^ trap · lit floor = walked",CX,H-6);
+  drawMapLegend();
+}
+// Color-coded legend so every glyph on the map is explained.
+function drawMapLegend(){
+  const items=[
+    [theme().c,"\u25B2","you"],
+    ["#6fe06f",">","stairs down"],
+    ["#6fe06f","<","stairs up"],
+    ["#ffd23f","$","shop"],
+    ["#ffd23f","\u25A1","chest"],
+    ["#ffd23f","\u26B7","key"],
+    ["#9a6a2a","\u2021","locked door"],
+    ["#62e6d4","?","riddle"],
+    ["#62e6d4","\u2248","fountain"],
+    ["#ff5a4d","^","trap (sprung)"],
+    ["#ff5a4d","\u03A9","boss"]
+  ];
+  ctx.textBaseline="middle";ctx.font="9px monospace";
+  // lay out across two rows centered at the bottom
+  const rowY=[H-20,H-7];
+  const perRow=Math.ceil(items.length/2);
+  for(let r=0;r<2;r++){
+    const slice=items.slice(r*perRow,(r+1)*perRow);
+    // measure total width to center
+    let widths=slice.map(([col,gl,label])=>{ctx.font="9px monospace";return ctx.measureText(gl+" "+label).width+12;});
+    let total=widths.reduce((a,b)=>a+b,0);
+    let x=(W-total)/2;
+    slice.forEach(([col,gl,label],i)=>{
+      ctx.textAlign="left";
+      ctx.fillStyle=col;ctx.font="9px monospace";ctx.fillText(gl,x,rowY[r]);
+      const gw=ctx.measureText(gl+" ").width;
+      ctx.fillStyle="#8a7a9a";ctx.fillText(label,x+gw,rowY[r]);
+      x+=widths[i];
+    });
+  }
+  ctx.textAlign="center";ctx.textBaseline="alphabetic";
 }
 
 /* ============================ MONSTER ART ============================ */
@@ -1301,7 +1336,11 @@ function boonLine(p){
   const b=[];
   if(p.critUp)b.push("Bloodlust×"+p.critUp);
   if(p.acc)b.push("Duelist×"+p.acc);
-  if(p.lifesteal)b.push("Vampire×"+p.lifesteal);
+  if(p.lifesteal)b.push((p.lifesteal>=3?"Vampire Lord":"Vampire")+"×"+p.lifesteal);
+  if(p.berserk)b.push("Berserker×"+p.berserk);
+  if(p.secondwind)b.push("Second Wind×"+p.secondwind);
+  if(p.thorns)b.push("Thornmail×"+p.thorns);
+  if(p.spbonus)b.push("Archmage +"+p.spbonus+" spell");
   return b.length?`<span style="color:#62e6d4">${b.join(" · ")}</span><br>`:"";
 }
 let __charSheetReturn="explore";
@@ -1320,7 +1359,7 @@ function showCharSheet(p){
     HP ${Math.max(0,p.hp)}/${p.maxhp} · SP ${p.sp}/${p.maxsp}<br>
     Damage ${p.dmin+p.w.b}–${p.dmax+p.w.b} <span style="color:#7d7490">(${p.w.name} +${p.w.b})</span><br>
     ${p.s?`Spell Power +${p.s.b} <span style="color:#7d7490">(${p.s.name})</span><br>`:""}
-    Armor ${p.a.b+(p.innate||0)} <span style="color:#7d7490">(${p.a.name}${p.innate?" +"+p.innate+" innate":""})</span><br>
+    Armor ${p.a.b+(p.innate||0)} <span style="color:#7d7490">(${p.a.name} +${p.a.b}${p.innate?" · innate +"+p.innate:""})</span><br>
     ${boonLine(p)}
     ${p.lvl<MAXLVL?`<span style="color:#7d7490">${Math.max(0,needXp)} XP to next level</span>`:`<span style="color:#ffd23f">MAX LEVEL</span>`}
     ${next?`<br><span style="color:#62a8e6">L${next[0]}: learns ${next[1]}</span>`:""}
@@ -1409,7 +1448,7 @@ function moveForward(){
     showRiddleControls();render();return;
   }
   S.x=nx;S.y=ny;S.steps++;S.calm++;
-  if(S.steps%5===0)S.party.forEach(p=>{if(p.alive&&p.sp<p.maxsp)p.sp++;});
+  if(S.steps%9===0)S.party.forEach(p=>{if(p.alive&&p.sp<p.maxsp)p.sp++;});
   markVisited();sfx.step();
   S.mapOn=false;
   const mb=document.getElementById("maptoggle");if(mb)mb.textContent="MAP";
@@ -1762,7 +1801,13 @@ function startCombat(types){
   }
   S.combat={foes,phase:"pick",order:S.party.filter(p=>p.alive).map(p=>p.id),idx:0,target:0};
   S.chant=0;floaters=[];particles=[];effects=[];shakeT=0;
-  S.party.forEach(p=>p.guard=false);
+  S.party.forEach(p=>{p.guard=false;p.cd={};});
+  // Second Wind boon: restore some HP as battle is joined.
+  S.party.forEach(p=>{ if(p.alive&&p.secondwind&&p.hp<p.maxhp){
+    const heal=Math.ceil(p.maxhp*0.20*p.secondwind);
+    p.hp=Math.min(p.maxhp,p.hp+heal);
+    log(p.name+" catches a second wind (+"+heal+" HP).","good");
+  }});
   render();
   if(!foes.some(f=>f.boss)&&S.depth>1&&Math.random()<0.35){
     log("They strike first — AMBUSH!","dmg");
@@ -1779,8 +1824,12 @@ function targetFoe(){
   if(!f||f.hp<=0){f=livingFoes()[0];c.target=c.foes.indexOf(f);}
   return f;
 }
-function pBase(p){return rnd(p.dmin,p.dmax)+p.w.b;}
-function spow(p){return p.s?p.s.b:0;}
+function pBase(p){
+  let b=rnd(p.dmin,p.dmax)+p.w.b;
+  if(p.berserk&&p.hp<p.maxhp*0.5)b+=p.berserk*(5+Math.floor(p.lvl/4));
+  return b;
+}
+function spow(p){return (p.s?p.s.b:0)+(p.spbonus||0);}
 function chantBonus(){return S.chant;}
 
 function showCombatControls(){
@@ -1794,12 +1843,12 @@ function showCombatControls(){
   let btns="";
   if(p.id==="brom"){
     btns=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>`;
-    if(p.lvl>=3)btns+=`<button class="act" data-a="cleave" ${p.sp<3?"disabled":""}>CLEAVE · 3 SP<small>80% dmg to two foes</small></button>`;
+    if(p.lvl>=3){const cdC=(p.cd&&p.cd.cleave)||0;btns+=`<button class="act" data-a="cleave" ${p.sp<3||cdC>0?"disabled":""}>CLEAVE · 3 SP<small>${cdC>0?"recovering — ready next turn":"80% dmg to two foes · then 1-turn cooldown"}</small></button>`;}
     if(p.lvl>=7)btns+=`<button class="act" data-a="whirl" ${p.sp<6?"disabled":""}>WHIRLWIND · 6 SP<small>70% dmg to ALL foes</small></button>`;
     if(p.lvl>=12)btns+=`<button class="act" data-a="berserk" ${p.sp<8?"disabled":""}>BERSERK · 8 SP<small>strike twice at full power</small></button>`;
   } else if(p.id==="lyra"){
     btns=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>
-          <button class="act" data-a="mend" ${p.sp<7?"disabled":""}>SONG OF MENDING · 7 SP<small>heal party ${5+Math.floor(p.lvl/2)}–${8+Math.floor(p.lvl/2)}</small></button>`;
+          <button class="act" data-a="mend" ${p.sp<7||((p.cd&&p.cd.mend)||0)>0?"disabled":""}>SONG OF MENDING · 7 SP<small>${((p.cd&&p.cd.mend)||0)>0?"the song must rest — ready next turn":"heal party "+(8+Math.floor(p.lvl*0.8))+"–"+(13+Math.floor(p.lvl*0.8))+" · then 1-turn cooldown"}</small></button>`;
     if(p.lvl>=4)btns+=`<button class="act" data-a="chant" ${p.sp<3||S.chant?"disabled":""}>WAR CHANT · 3 SP<small>party +${3+Math.floor(p.lvl/4)} dmg this fight</small></button>`;
     if(p.lvl>=8)btns+=`<button class="act" data-a="lullaby" ${p.sp<6?"disabled":""}>LULLABY · 6 SP<small>50% to stun each foe</small></button>`;
   } else {
@@ -1890,7 +1939,7 @@ function doAction(p,a){
     if(r.miss)missFoe(f,p.name);
     else{(r.crit?sfx.crit:sfx.hit)();bossDown=hitFoe(f,r.d,p.name+" strikes","",r.crit);}
   } else if(a==="cleave"){
-    p.sp-=3;sfx.hit();
+    p.sp-=3;p.cd=p.cd||{};p.cd.cleave=2;sfx.hit();
     const tf=targetFoe();
     const targets=[tf].concat(livingFoes().filter(f=>f!==tf).slice(0,1));
     for(const f of targets){
@@ -1910,8 +1959,8 @@ function doAction(p,a){
       if(hitFoe(f,pBase(p)+chantBonus(),"VANN rages","dmg")){bossDown=true;break;}
     }
   } else if(a==="mend"){
-    p.sp-=7;sfx.song();
-    const h=rnd(5+Math.floor(p.lvl/2),8+Math.floor(p.lvl/2));
+    p.sp-=7;p.cd=p.cd||{};p.cd.mend=2;sfx.song();
+    const h=rnd(8+Math.floor(p.lvl*0.8),13+Math.floor(p.lvl*0.8));
     S.party.forEach(q=>{if(q.alive){q.hp=Math.min(q.maxhp,q.hp+h);if(q.poison>0)q.poison--;else if(q.burn>0)q.burn--;}});
     log("CAELA plays the Song of Mending — heals <b>"+h+"</b> and eases one ill.","good");
   } else if(a==="chant"){
@@ -2021,6 +2070,7 @@ function enemyTurn(){
         log("The master rakes the air — something claws up from the floor!","dmg");
         sfx.doom();
       }
+      S.party.forEach(q=>{if(q.cd)for(const k in q.cd)if(q.cd[k]>0)q.cd[k]--;});
       c.phase="pick";c.idx=-1;nextActor();return;
     }
     const f=foes[i++];
@@ -2113,6 +2163,11 @@ function enemyTurn(){
       if(t.guard)d=Math.max(1,Math.ceil(d/2));
       t.hp-=d;sfx.hurt();hurtVignette=ecrit?20:14;if(ecrit)shakeT=10;
       log(f.name+" "+verb+" "+t.name+(ecrit?" — a SAVAGE blow!":"")+" — <b>"+d+"</b> dmg.","dmg");
+      if(t.thorns&&f.hp>0){
+        const rfl=Math.max(1,Math.round(d*0.25*t.thorns));
+        f.hp-=rfl;log("Thornmail bites back — "+f.name+" takes <b>"+rfl+"</b>.","good");
+        if(f.hp<=0){f.hp=0;f.alive=false;S.kills++;log(f.name+" is slain by its own fury!","good");}
+      }
       if(t.hp<=0){t.alive=false;t.hp=0;S.deaths++;log(t.name+" falls!","dmg");}
       if(t.alive){
         if(f.type==="spider"&&Math.random()<0.4){t.poison=2;log(t.name+" is POISONED by venom!","dmg");}
@@ -2159,19 +2214,41 @@ function winBoss(){
   render();showGiveControls();
 }
 const BOONS=[
-  {n:"Ironheart",  d:"+20 max HP",      f:p=>{p.maxhp+=20;p.hp+=20;}},
-  {n:"Deep Well",  d:"+12 max SP",      f:p=>{p.maxsp+=12;p.sp+=12;}},
-  {n:"Keen Edge",  d:"+3 damage",       f:p=>{p.dmin+=3;p.dmax+=3;}},
-  {n:"Bloodlust",  d:"crits hit harder",f:p=>{p.critUp=(p.critUp||0)+1;}},
-  {n:"Duelist",    d:"strikes rarely miss",f:p=>{p.acc=(p.acc||0)+1;}},
-  {n:"Stoneskin",  d:"+2 innate armor", f:p=>{p.innate=(p.innate||0)+2;}},
-  {n:"Vampire",    d:"heal on every kill",f:p=>{p.lifesteal=(p.lifesteal||0)+1;}}
+  // —— common (any level) ——
+  {n:"Ironheart",  d:"+20 max HP",        t:0,f:p=>{p.maxhp+=20;p.hp+=20;}},
+  {n:"Deep Well",  d:"+12 max SP",        t:0,f:p=>{p.maxsp+=12;p.sp+=12;}},
+  {n:"Keen Edge",  d:"+3 damage",         t:0,f:p=>{p.dmin+=3;p.dmax+=3;}},
+  {n:"Bloodlust",  d:"crits hit harder",  t:0,f:p=>{p.critUp=(p.critUp||0)+1;}},
+  {n:"Duelist",    d:"strikes rarely miss",t:0,f:p=>{p.acc=(p.acc||0)+1;}},
+  {n:"Stoneskin",  d:"+2 innate armor",   t:0,f:p=>{p.innate=(p.innate||0)+2;}},
+  {n:"Vampire",    d:"heal on every kill", t:0,f:p=>{p.lifesteal=(p.lifesteal||0)+1;}},
+  // —— greater (level 10+) ——
+  {n:"Titan's Heart", d:"+50 max HP",                  t:1,f:p=>{p.maxhp+=50;p.hp+=50;}},
+  {n:"Arcane Font",   d:"+24 max SP",                  t:1,f:p=>{p.maxsp+=24;p.sp+=24;}},
+  {n:"Executioner",   d:"+6 damage",                   t:1,f:p=>{p.dmin+=6;p.dmax+=6;}},
+  {n:"Greater Stoneskin",d:"+4 innate armor",          t:1,f:p=>{p.innate=(p.innate||0)+4;}},
+  {n:"Berserker",     d:"big damage while below ½ HP", t:1,f:p=>{p.berserk=(p.berserk||0)+1;}},
+  {n:"Second Wind",   d:"heal 20% HP at each fight's start",t:1,f:p=>{p.secondwind=(p.secondwind||0)+1;}},
+  {n:"Thornmail",     d:"reflect 25% of melee taken",  t:1,f:p=>{p.thorns=(p.thorns||0)+1;}},
+  // —— mythic (level 25+) ——
+  {n:"Immortal",      d:"+100 max HP",                 t:2,f:p=>{p.maxhp+=100;p.hp+=100;}},
+  {n:"Archmage",      d:"+6 spell power",              t:2,f:p=>{p.spbonus=(p.spbonus||0)+6;}},
+  {n:"Deathbringer",  d:"+12 damage",                  t:2,f:p=>{p.dmin+=12;p.dmax+=12;}},
+  {n:"Vampire Lord",  d:"heal a LOT on every kill",    t:2,f:p=>{p.lifesteal=(p.lifesteal||0)+3;}},
+  {n:"Bulwark",       d:"+8 innate armor",             t:2,f:p=>{p.innate=(p.innate||0)+8;}}
 ];
+const MILESTONE_EVERY=10;  // levels divisible by this offer an "Ascension" (greater+ only)
 function offerBoon(p){
-  const picks=[];const pool=BOONS.slice();
-  while(picks.length<3&&pool.length)picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  const maxTier = p.lvl>=25 ? 2 : p.lvl>=10 ? 1 : 0;
+  const ascension = p.lvl % MILESTONE_EVERY === 0 && maxTier>=1;
+  // Build the candidate pool. Ascension => greater/mythic only; otherwise all unlocked tiers.
+  let pool = BOONS.filter(b => ascension ? (b.t>=1 && b.t<=maxTier) : (b.t<=maxTier));
+  if(!pool.length) pool = BOONS.filter(b=>b.t===0);
+  pool = pool.slice();
+  const picks=[];
+  while(picks.length<3 && pool.length) picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
   S.boonQueue=S.boonQueue||[];
-  S.boonQueue.push({pid:p.id,picks});
+  S.boonQueue.push({pid:p.id,picks,ascension});
 }
 const LVL_FLAVOR={
   brom:["steel settles in his shoulders","the old oath hardens to bone","his shield arm stops trembling","the keep's strength wakes in him"],
@@ -2211,7 +2288,9 @@ function showBoonPicker(){
   const job=S.boonQueue[0];
   const p=pcById(job.pid);
   const btns=job.picks.map((b,i)=>`<button class="act wide" data-boon="${i}">${b.n.toUpperCase()}<small>${b.d}</small></button>`).join("");
-  ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ ${p.name} GROWS STRONGER ⟡<small>choose a boon</small></div>
+  const title=job.ascension?`✦ ${p.name}'S ASCENSION ✦`:`⟡ ${p.name} GROWS STRONGER ⟡`;
+  const sub=job.ascension?"a milestone power — choose well":"choose a boon";
+  ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">${title}<small>${sub}</small></div>
     <div id="acts">${btns}</div>`;
   ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
     const boon=job.picks[+b.dataset.boon];
@@ -2357,6 +2436,11 @@ function bootFrom(d){
   S.riddle=RIDDLES[d.riddleIdx]||RIDDLES[0];S.riddleOrder=d.riddleOrder||null;
   S.bossSummoned=+S.bossSummoned||0;
   S.boonQueue=d.boonQueue||[];S.skillQueue=d.skillQueue||[];
+  // Migrate older saves to the rebalanced XP curve: ensure XP is at least the base for the
+  // party's highest level so no one is demoted or hit with a huge catch-up wall.
+  {const topLvl=Math.max(...S.party.map(p=>p.lvl||1));
+   const floorXp=xpForLevel(topLvl);
+   if(S.xp<floorXp)S.xp=floorXp;}
   S.t0=Date.now()-(d.elapsed||0);
   logs=[];floaters=[];particles=[];effects=[];hurtVignette=0;
   document.getElementById("intro").classList.add("hidden");
