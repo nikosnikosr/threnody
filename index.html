@@ -39,6 +39,9 @@
   }
   #sndtoggle{position:absolute;top:6px;left:6px;font-size:11px;color:var(--phos-dim);border:1px solid var(--phos-dim);
     background:rgba(0,0,0,.55);border-radius:3px;padding:4px 8px;letter-spacing:1px;z-index:2}
+  #musictoggle{position:absolute;top:6px;left:74px;font-size:11px;color:var(--phos-dim);border:1px solid var(--phos-dim);
+    background:rgba(0,0,0,.55);border-radius:3px;padding:4px 8px;letter-spacing:1px;z-index:2}
+  #musictoggle.off{opacity:.5;text-decoration:line-through}
   #log{flex:0 0 auto;min-height:58px;max-height:104px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;
     font-size:12px;line-height:1.45;padding:6px 8px;margin-top:6px;border:1px solid #2a2240;border-radius:4px;background:var(--panel)}
   #log::-webkit-scrollbar{width:5px} #log::-webkit-scrollbar-thumb{background:#3a2f58;border-radius:3px}
@@ -70,7 +73,7 @@
   button.act.flee{border-color:#5a2a2a;color:#d89a94}
   button.act.shop{border-color:#5a4a1a}
   button.act.wide{grid-column:1 / -1}
-  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:7px;min-height:14px}
+  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:10px;min-height:14px;padding:0 14px}
   #actorline small{display:block;color:#7d7490;letter-spacing:0;font-size:9px;margin-top:2px;white-space:normal;line-height:1.35}
   .riddle{font-size:12px;line-height:1.6;color:#bdb3cf;text-align:center;padding:0 10px 10px}
   .sheet{font-size:11px;line-height:1.7;color:#bdb3cf;padding:0 6px 10px;text-align:center}
@@ -100,6 +103,7 @@
     <canvas id="cv" width="360" height="252"></canvas>
     <div id="scan"></div>
     <button id="sndtoggle">SND ON</button>
+    <button id="musictoggle">MUSIC</button>
   </div>
   <div id="log"></div>
   <div id="party"></div>
@@ -113,7 +117,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b30</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b40</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -121,6 +125,12 @@
   </div>
   <button id="continuebtn" class="hidden">CONTINUE</button>
   <button id="begin" class="">DESCEND ANEW</button>
+  <button id="titlethreshold" class="alt">✦ THE THRESHOLD ✦</button>
+  <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
+    <button id="titledaily" class="alt" style="margin-top:0">◆ DAILY</button>
+    <button id="titlechronicle" class="alt" style="margin-top:0">CHRONICLE</button>
+  </div>
+  <p id="titlemeta" style="color:#6a5f80;font-size:10px;letter-spacing:1px;margin-top:8px"></p>
 </div>
 
 <div class="screen hidden" id="lorescreen">
@@ -133,11 +143,17 @@
 
 <div class="screen hidden" id="gameover">
   <h2 style="color:var(--blood)">THE PARTY FALLS</h2>
-  <p>The dark closes over them — but Caela's song is not finished. A measure of it still hangs in the air.</p>
-  <p style="color:#bdb3cf;font-size:12px"><b>What now?</b> Choose below:</p>
-  <p style="color:#7a5520;font-size:11px"><b>CONTINUE</b> — the song pulls you back to this floor's stair. Lose 60% of your gold and wake weakened, but keep every level, weapon, and boon.<br><br><b>NEW GAME</b> — abandon this run and start a fresh descent from Depth 1.</p>
-  <button id="rise">CONTINUE THIS RUN</button>
-  <button id="retry" class="alt">START A NEW GAME</button>
+  <p>The dark closes over them — but Caela's song is not finished. A measure of it still hangs in the air. <b>You may rise once more, or let this descent end.</b></p>
+  <div id="go_rise_box" style="text-align:left;max-width:360px;margin:6px auto 0;border:1px solid #2a2040;border-radius:10px;padding:11px 13px;background:var(--panel)">
+    <div style="color:var(--phos);letter-spacing:2px;font-size:13px;margin-bottom:4px">↑ RISE &amp; PRESS ON</div>
+    <div id="go_rise" style="color:#bcb2d4;font-size:12px;line-height:1.5"></div>
+  </div>
+  <button id="rise">RISE — CONTINUE THIS RUN</button>
+  <div id="go_end_box" style="text-align:left;max-width:360px;margin:14px auto 0;border:1px solid #2a2040;border-radius:10px;padding:11px 13px;background:var(--panel)">
+    <div style="color:var(--violet);letter-spacing:2px;font-size:13px;margin-bottom:4px">✦ LET GO &amp; END THE RUN</div>
+    <div id="go_end" style="color:#bcb2d4;font-size:12px;line-height:1.5"></div>
+  </div>
+  <button id="retry" class="alt">END RUN — BANK ECHOES</button>
 </div>
 
 <div class="screen hidden" id="runend">
@@ -145,11 +161,66 @@
   <h2 style="color:var(--gold)">THE RUN ENDS</h2>
   <p id="rstats"></p>
   <p id="rgrade" style="color:var(--gold);letter-spacing:3px;font-size:14px"></p>
-  <button id="again">NEW DESCENT</button>
+  <p id="rechoes" style="font-size:12px;margin-top:4px"></p>
+  <button id="tothreshold">✦ THE THRESHOLD ✦</button>
+  <button id="again" class="alt">NEW DESCENT</button>
+</div>
+
+<div class="screen hidden" id="threshold">
+  <div class="rune">— BETWEEN LIVES —</div>
+  <h2 style="color:#b88cff;text-shadow:0 0 14px rgba(184,140,255,.6)">THE THRESHOLD</h2>
+  <p style="color:#bdb3cf;font-size:12px;margin-bottom:4px">The fallen leave <b style="color:#b88cff">Echoes</b> in the deep. Spend them here — every purchase strengthens <i>all</i> future descents.</p>
+  <p id="th_balance" style="color:#b88cff;letter-spacing:2px;font-size:14px;margin-bottom:10px"></p>
+  <div id="th_list" style="width:100%;max-width:340px;text-align:left"></div>
+  <button id="th_back">◂ BACK</button>
+</div>
+
+<div class="screen hidden" id="dailyscreen">
+  <div class="rune">— THE SAME DARK FOR ALL —</div>
+  <h2 style="color:#7fd0ff;text-shadow:0 0 14px rgba(127,208,255,.5)">DAILY CHALLENGE</h2>
+  <p style="color:#bdb3cf;font-size:12px">One seed, shared by every delver in the world today. <b>No Threshold powers</b> — the same Deep, the same foes, pure skill. One sitting; the run is not saved.</p>
+  <p id="daily_info" style="color:#7fd0ff;font-size:13px;letter-spacing:1px;margin:10px 0"></p>
+  <button id="daily_begin">▶ BEGIN TODAY'S DESCENT</button>
+  <button id="daily_back" class="alt">◂ BACK</button>
+</div>
+
+<div class="screen hidden" id="chronicle">
+  <div class="rune">— WHAT THE DEEP REMEMBERS —</div>
+  <h2 style="color:var(--gold)">THE CHRONICLE</h2>
+  <div id="chron_stats" style="font-size:12px;color:#bdb3cf;margin-bottom:8px"></div>
+  <div style="width:100%;max-width:360px;text-align:left">
+    <div style="color:#7d7490;font-size:10px;letter-spacing:2px;margin:4px 0">RECENT DESCENTS</div>
+    <div id="chron_runs" style="font-size:11px"></div>
+    <div style="color:#7d7490;font-size:10px;letter-spacing:2px;margin:10px 0 4px">DEEDS</div>
+    <div id="chron_ach"></div>
+  </div>
+  <button id="chron_back">◂ BACK</button>
 </div>
 
 <script>
 "use strict";
+/* ============================ SEEDABLE RNG ============================ */
+// sysRandom = the real Math.random, used for cosmetics so they never disturb a seeded run.
+const sysRandom=Math.random.bind(Math);
+function mulberry32(seed){
+  let a=seed>>>0;
+  return function(){
+    a|=0;a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296;
+  };
+}
+// During a daily run, Math.random IS the seeded generator → identical dungeon for everyone that day.
+function seedRun(seed){ Math.random=mulberry32(seed); }
+function unseedRun(){ Math.random=sysRandom; }
+function dailySeedFor(dateStr){ // hash YYYY-MM-DD → 32-bit seed
+  let hsh=2166136261>>>0;
+  for(let i=0;i<dateStr.length;i++){hsh^=dateStr.charCodeAt(i);hsh=Math.imul(hsh,16777619);}
+  return hsh>>>0;
+}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
 /* ============================ DATA ============================ */
 const THEMES=[
   {n:"The Cellars",      c:"#ffb648"},
@@ -186,9 +257,61 @@ const TIERPOOL=[
 function poolFor(){return TIERPOOL[Math.max(0,Math.min(TIERPOOL.length-1,Math.floor((S.depth-1)/5)))];}
 
 const BOSSES=[
-  {art:"golem", name:"THE WARDEN-THAT-WAS",  cry:"A dead garrison captain, still at his post. Vann salutes him before he strikes."},
-  {art:"wraith",name:"THE HOLLOW CHOIR",     cry:"The voices Thessaly woke, knotted into one shape. Caela's song makes it flinch."},
-  {art:"demon", name:"VAEL, FLAME OF RUIN",   cry:"A thing from Orrin's forbidden books, loosed and furious to be named at last."}];
+  {art:"golem", name:"THE WARDEN-THAT-WAS", mech:"bulwark",
+   cry:"A dead garrison captain, still at his post. Vann salutes him before he strikes.",
+   intro:"He lifts a tower shield the size of a door. \"NONE PASS,\" says the dust in his throat.",
+   defeat:"The Warden lowers his shield at last, and salutes back. The post is yours."},
+  {art:"wraith",name:"THE HOLLOW CHOIR", mech:"wail",
+   cry:"The voices Thessaly woke, knotted into one shape. Caela's song makes it flinch.",
+   intro:"A hundred swallowed voices turn toward you at once. The air begins to SCREAM.",
+   defeat:"The Choir comes apart into single, tired sighs — and is quiet."},
+  {art:"demon", name:"VAEL, FLAME OF RUIN", mech:"immolate",
+   cry:"A thing from Orrin's forbidden books, loosed and furious to be named at last.",
+   intro:"Vael unfolds burning from the dark. \"YOU READ MY NAME, LITTLE MAGE. NOW BURN WITH IT.\"",
+   defeat:"Vael collapses into cooling cinders. Orrin closes the book he never should have opened."},
+  {art:"brute", name:"THE GAOLER", mech:"chain",
+   cry:"It kept the deep's prisoners. It does not understand that the doors are open now.",
+   intro:"Chains uncoil from its arms, dragging rusted manacles. It means to keep you here forever.",
+   defeat:"The Gaoler's chains fall slack. Somewhere far below, a thousand locks click open."},
+  {art:"necro", name:"THE PALE ABBOT", mech:"litany",
+   cry:"He sang funerals here for a century. Now he sings only for himself.",
+   intro:"The Abbot folds pale hands and begins a litany that knits his every wound. Silence him.",
+   defeat:"The litany falters mid-word. The Abbot smiles, almost grateful, and is finally still."},
+  {art:"demon", name:"THESSALY, THE SONGBREAKER", mech:"discord",
+   cry:"The thief himself. The Harp screams in his grip, half-unraveled.",
+   intro:"Thessaly turns, the broken Harp in hand. \"You came all this way to hear how it ends?\"",
+   defeat:"Thessaly falls, and the Harp rolls free — its final string still trembling, unbroken."}];
+
+/* ===================== RELICS (rare, build-defining boss drops) ===================== */
+const RELICS=[
+  {id:"titanmarrow", name:"TITAN'S MARROW",  desc:"+30 max HP to the whole party",
+   f:()=>S.party.forEach(p=>{p.maxhp+=30;p.hp+=30;})},
+  {id:"bloodidol",   name:"BLOODIED IDOL",   desc:"+30% damage, but −10% max HP",
+   f:()=>S.party.forEach(p=>{p.dmin=Math.round(p.dmin*1.3);p.dmax=Math.round(p.dmax*1.3);p.maxhp=Math.max(10,Math.round(p.maxhp*0.9));p.hp=Math.min(p.hp,p.maxhp);})},
+  {id:"harpstring",  name:"HARPSTRING FRAGMENT", desc:"+8 max SP to all · spend it freely",
+   f:()=>S.party.forEach(p=>{p.maxsp+=8;p.sp=p.maxsp;})},
+  {id:"wardenseal",  name:"WARDEN'S SEAL",   desc:"+4 innate armor for every hero",
+   f:()=>S.party.forEach(p=>{p.innate=(p.innate||0)+4;})},
+  {id:"vampchalice", name:"VAMPIRE'S CHALICE", desc:"the whole party heals on every kill",
+   f:()=>S.party.forEach(p=>{p.lifesteal=(p.lifesteal||0)+1;})},
+  {id:"berserkbrand",name:"BERSERKER'S BRAND",desc:"all heroes rage when below half HP",
+   f:()=>S.party.forEach(p=>{p.berserk=(p.berserk||0)+1;})},
+  {id:"thorncrown",  name:"CROWN OF THORNS",  desc:"all heroes reflect melee damage",
+   f:()=>S.party.forEach(p=>{p.thorns=(p.thorns||0)+1;})},
+  {id:"echolocket",  name:"ECHO LOCKET",      desc:"+40% Echoes earned from this run",
+   f:()=>{S.echoBonus=(S.echoBonus||0)+0.4;}}
+];
+function ownedRelics(){return S.relics||[];}
+function grantRelicChoice(after){
+  // offer up to 3 relics not yet owned this run
+  const pool=RELICS.filter(r=>!ownedRelics().includes(r.id));
+  if(!pool.length){after&&after();return false;}
+  const picks=[];const tmp=pool.slice();
+  while(picks.length<3&&tmp.length)picks.push(tmp.splice(Math.floor(Math.random()*tmp.length),1)[0]);
+  S.pendingRelic={picks,after:after||null};
+  showRelicPicker();
+  return true;
+}
 const ROMAN=["","II","III","IV","V","VI","VII","VIII","IX","X"];
 const STORY_BEATS={
   2:"You pass cells where the garrison was kept. Vann does not look at the names scratched into the stone.",
@@ -308,11 +431,11 @@ const RIDDLES=[
 function makeParty(){
   return [
     {id:"brom",name:"VANN",cls:"Warrior",hp:44,maxhp:44,sp:10,maxsp:10,dmin:6,dmax:10,lvl:1,alive:true,
-     w:{name:"Worn Blade",b:1},a:{name:"Travel Garb",b:0}},
+     w:{name:"Worn Blade",b:1},a:{name:"Travel Garb",b:0},xp:0},
     {id:"lyra",name:"CAELA",cls:"Songweaver",hp:32,maxhp:32,sp:14,maxsp:14,dmin:4,dmax:8,lvl:1,alive:true,
-     w:{name:"Knife",b:0},a:{name:"Travel Garb",b:0}},
+     w:{name:"Knife",b:0},a:{name:"Travel Garb",b:0},xp:0},
     {id:"zedd",name:"ORRIN",cls:"Mage",hp:26,maxhp:26,sp:18,maxsp:18,dmin:2,dmax:5,lvl:1,alive:true,
-     w:{name:"Knife",b:0},a:{name:"Robes",b:0},s:{name:"Ash Staff",b:0}}
+     w:{name:"Knife",b:0},a:{name:"Robes",b:0},s:{name:"Ash Staff",b:0},xp:0}
   ];
 }
 const SKILL_UNLOCKS={
@@ -334,6 +457,11 @@ const SKILL_DESC={
   "Disintegrate":"10 SP · massive damage to a single foe."
 };
 function xpForLevel(l){return Math.max(0,Math.round(50*(l-1)*(l-1)-13*(l-1)));}
+// Per-character leveling pace. Caela the Songweaver rarely lands the killing blow,
+// so she rises on less XP than the rest of the party.
+const XP_RATE={lyra:0.7};
+function xpRate(p){return (p&&XP_RATE[p.id])||1;}
+function xpNeeded(p,l){return Math.round(xpForLevel(l)*xpRate(p));}
 const MAXLVL=999;
 
 /* ============================ STATE ============================ */
@@ -347,11 +475,12 @@ function newState(){
     steps:0, calm:0, kills:0, deaths:0, rises:0,
     combat:null, mapOn:false, over:false,
     chant:0, bossSummoned:0, boonQueue:[], skillQueue:[], tipsSeen:{}, riddleBag:[], riddleSeen:0, pending:null,
+    relics:[], echoBonus:0,
     t0:Date.now()
   };
 }
 const DX=[0,1,0,-1],DY=[-1,0,1,0],DIRNAME=["N","E","S","W"];
-function cell(x,y){const g=S.grid;if(y<0||y>=g.length||x<0||x>=g[0].length)return"#";return g[y][x];}
+function cell(x,y){const g=S.grid;if(!g)return"#";if(y<0||y>=g.length||x<0||x>=g[0].length)return"#";return g[y][x];}
 function setCell(x,y,v){S.grid[y][x]=v;}
 function isSolid(c){return c==="#"||c==="D"||c==="R";}
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
@@ -540,8 +669,92 @@ const sfx={
   doom:()=>{[300,250,200,150].forEach((f,i)=>setTimeout(()=>beep(f,.3,"sawtooth",.06),i*180));}
 };
 
+/* ===================== AMBIENT MUSIC (procedural, no audio files) ===================== */
+let musicOn=true, musicNodes=null, musicMood=-1;
+// One mood per region — deeper means a lower, darker mode.
+const MUSIC_MOODS=[
+  {root:146.83, steps:[0,2,3,5,7,8,10]}, // D natural minor — the Cellars
+  {root:138.59, steps:[0,2,3,5,7,8,10]}, // Db minor
+  {root:130.81, steps:[0,1,3,5,7,8,10]}, // C Phrygian — darker
+  {root:123.47, steps:[0,1,3,5,6,8,10]}, // B locrian-tinged
+  {root:116.54, steps:[0,1,3,5,7,8,11]}, // Bb harmonic minor
+  {root:110.00, steps:[0,1,4,5,7,8,11]}  // A — the deepest dark
+];
+function moodIdx(){return Math.min(MUSIC_MOODS.length-1,Math.max(0,Math.floor(((S&&S.depth?S.depth:1)-1)/5)));}
+function noteFreq(mood,degree,octave){
+  const s=mood.steps,n=s.length;
+  let idx=((degree%n)+n)%n, oct=octave+Math.floor(degree/n);
+  return mood.root*Math.pow(2,oct)*Math.pow(2,s[idx]/12);
+}
+function playMusicNote(dest,freq,dur,type,vol){
+  if(!AC)return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||"sine";o.frequency.value=freq;g.gain.value=0;
+  o.connect(g);g.connect(dest);
+  const t=AC.currentTime;
+  g.gain.linearRampToValueAtTime(vol||0.05,t+0.09);
+  g.gain.exponentialRampToValueAtTime(0.0006,t+dur);
+  o.start(t);o.stop(t+dur+0.05);
+}
+function startMusic(){
+  if(!musicOn||!sndOn)return;
+  if(musicNodes)return;
+  try{
+    if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==="suspended"&&AC.resume)AC.resume();
+    musicMood=moodIdx();
+    const mood=MUSIC_MOODS[musicMood];
+    const master=AC.createGain();master.gain.value=0;master.connect(AC.destination);
+    master.gain.linearRampToValueAtTime(0.5,AC.currentTime+2.5); // gentle fade-in
+    // sustained drone: root + fifth + sub-octave
+    const drone=AC.createGain();drone.gain.value=0.05;drone.connect(master);
+    const d1=AC.createOscillator();d1.type="sine";d1.frequency.value=mood.root;
+    const d2=AC.createOscillator();d2.type="sine";d2.frequency.value=mood.root*Math.pow(2,7/12);d2.detune.value=5;
+    const d3=AC.createOscillator();d3.type="triangle";d3.frequency.value=mood.root/2;
+    d1.connect(drone);d2.connect(drone);d3.connect(drone);
+    // slow "breathing" LFO on the drone
+    const lfo=AC.createOscillator();lfo.frequency.value=0.06;
+    const lfoG=AC.createGain();lfoG.gain.value=0.025;lfo.connect(lfoG);lfoG.connect(drone.gain);
+    d1.start();d2.start();d3.start();lfo.start();
+    // sparse melodic scheduler
+    let beat=0;
+    const pattern=[0,2,4,3,5,1,4,6];
+    const timer=setInterval(()=>{
+      if(!musicNodes||!musicOn||!sndOn)return;
+      beat++;
+      const m=MUSIC_MOODS[moodIdx()];
+      if(sysRandom()<0.5){
+        const deg=pattern[beat%pattern.length]+(sysRandom()<0.28?7:0);
+        playMusicNote(master,noteFreq(m,deg,1),1.0+sysRandom()*1.6,"sine",0.05);
+      }
+      if(beat%4===0&&sysRandom()<0.55)
+        playMusicNote(master,noteFreq(m,0,0),2.4,"triangle",0.045); // low pulse
+    },1500);
+    musicNodes={master,oscs:[d1,d2,d3,lfo],timer};
+  }catch(e){musicNodes=null;}
+}
+function stopMusic(){
+  if(!musicNodes)return;
+  const mn=musicNodes;musicNodes=null;
+  try{
+    clearInterval(mn.timer);
+    const t=AC.currentTime;
+    mn.master.gain.cancelScheduledValues(t);
+    mn.master.gain.setValueAtTime(mn.master.gain.value,t);
+    mn.master.gain.linearRampToValueAtTime(0,t+0.6);
+    mn.oscs.forEach(o=>{try{o.stop(t+0.7);}catch(e){}});
+    setTimeout(()=>{try{mn.master.disconnect();}catch(e){}},900);
+  }catch(e){}
+}
+// Re-key the drone when crossing into a new region.
+function maybeRekeyMusic(){
+  if(!musicNodes)return;
+  if(moodIdx()!==musicMood){stopMusic();setTimeout(startMusic,650);}
+}
+
 /* ============================ LOG ============================ */
 const logEl=document.getElementById("log");
+function snapLog(){try{logEl.scrollTop=logEl.scrollHeight;}catch(e){}}
 let logs=[];
 const TIPS={
   move:"TIP: Tap ▲ to step forward, ↰ ↱ to turn. Reach the green stairs (>) to descend. MAP button (bottom-right) shows where you've been.",
@@ -582,13 +795,97 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b30";
+const BUILD="b40";
+
+/* ===================== META-PROGRESSION (persists across all runs) ===================== */
+const META_KEY="threnody-meta";
+const META_UPGRADES=[
+  {id:"vigor",   name:"VIGOR",      max:6, cost:t=>12+t*10, desc:t=>"+"+(t*8)+" starting HP for the whole party",        per:8},
+  {id:"fortune", name:"FORTUNE",    max:6, cost:t=>10+t*9,  desc:t=>"start each run with "+(t*45)+" gold",                per:45},
+  {id:"provision",name:"PROVISIONS",max:4, cost:t=>14+t*14, desc:t=>"start with "+t+" extra potion"+(t===1?"":"s")+(t>=3?" + an elixir":""), per:1},
+  {id:"whetstone",name:"WHETSTONE", max:5, cost:t=>16+t*13, desc:t=>"begin with +"+t+" weapon bonus on every hero",       per:1},
+  {id:"foresight",name:"FORESIGHT", max:5, cost:t=>18+t*16, desc:t=>"start each run already at level "+(1+t),            per:1},
+  {id:"resonance",name:"RESONANCE", max:3, cost:t=>30+t*30, desc:t=>"begin with "+t+" random boon"+(t===1?"":"s")+" on the party", per:1}
+];
+function freshMeta(){return {v:1,echoes:0,totalEchoes:0,runs:0,bestDepth:0,bestLevel:0,totalKills:0,upgrades:{},
+  history:[], achievements:{}, totalRises:0,
+  daily:{date:"",bestDepth:0,attempts:0,streak:0,lastDay:"",claimed:""} };}
+let META=freshMeta();
+function loadMeta(){
+  try{const j=localStorage.getItem(META_KEY);if(j){const d=JSON.parse(j);if(d&&d.v===1){
+    META=Object.assign(freshMeta(),d,{upgrades:Object.assign({},d.upgrades||{})});
+    META.history=Array.isArray(d.history)?d.history:[];
+    META.achievements=d.achievements||{};
+    META.daily=Object.assign(freshMeta().daily,d.daily||{});
+  }}}catch(e){}
+}
+function saveMeta(){try{localStorage.setItem(META_KEY,JSON.stringify(META));}catch(e){}}
+function metaTier(id){return (META.upgrades&&META.upgrades[id])||0;}
+loadMeta();
+
+// Echoes earned from a finished run — rewards going deep and fighting.
+function echoesFor(depth,kills){return Math.max(1, depth*6 + Math.floor(kills*0.8) + (depth>=10?depth:0));}
+
+const ACHIEVEMENTS=[
+  {id:"firststeps",name:"First Steps",     desc:"Finish your first descent"},
+  {id:"delver",    name:"Delver",          desc:"Reach Depth 5"},
+  {id:"hero",      name:"Hero of the Keep", desc:"Reach Depth 10"},
+  {id:"legend",    name:"Legend",          desc:"Reach Depth 15"},
+  {id:"demigod",   name:"Demigod",         desc:"Reach Depth 20"},
+  {id:"mythic",    name:"Mythic",          desc:"Reach Depth 30"},
+  {id:"ascendant", name:"Ascendant",       desc:"Reach Depth 40"},
+  {id:"slayer",    name:"Slayer",          desc:"Slay 100 foes (lifetime)"},
+  {id:"butcher",   name:"Butcher of the Deep",desc:"Slay 1000 foes (lifetime)"},
+  {id:"persistent",name:"Persistent",      desc:"Complete 10 runs"},
+  {id:"dedicated", name:"Dedicated",       desc:"Complete 50 runs"},
+  {id:"attuned",   name:"Attuned",         desc:"Max out a Threshold power"},
+  {id:"unbowed",   name:"Unbowed",         desc:"Rise from death and carry on"},
+  {id:"devoted",   name:"Devoted",         desc:"Keep a 7-day Daily streak"}
+];
+// Returns array of newly-unlocked achievement objects for a just-finished run.
+function evalAchievements(run){
+  const got=[];
+  const unlock=id=>{ if(!META.achievements[id]){ META.achievements[id]=Date.now(); got.push(ACHIEVEMENTS.find(a=>a.id===id)); } };
+  unlock("firststeps");
+  const bd=Math.max(META.bestDepth, run.depth);
+  if(bd>=5)unlock("delver"); if(bd>=10)unlock("hero"); if(bd>=15)unlock("legend");
+  if(bd>=20)unlock("demigod"); if(bd>=30)unlock("mythic"); if(bd>=40)unlock("ascendant");
+  if(META.totalKills>=100)unlock("slayer"); if(META.totalKills>=1000)unlock("butcher");
+  if(META.runs>=10)unlock("persistent"); if(META.runs>=50)unlock("dedicated");
+  if(META_UPGRADES.some(u=>metaTier(u.id)>=u.max))unlock("attuned");
+  if(META.totalRises>0)unlock("unbowed");
+  if(META.daily&&META.daily.streak>=7)unlock("devoted");
+  return got;
+}
+
+// Apply purchased meta-upgrades to a freshly-created run state.
+function applyMeta(st){
+  const v=metaTier("vigor"); if(v)st.party.forEach(p=>{const add=v*8;p.maxhp+=add;p.hp+=add;});
+  const f=metaTier("fortune"); if(f)st.gold+=f*45;
+  const pr=metaTier("provision"); if(pr){st.potions+=pr; if(pr>=3)st.elixirs+=1;}
+  const w=metaTier("whetstone"); if(w)st.party.forEach(p=>{p.w.b+=w;});
+  const fs=metaTier("foresight");
+  if(fs){ st.party.forEach(p=>{p.xp=xpNeeded(p,1+fs);}); checkLevelUpSilently(st); }
+  const rs=metaTier("resonance");
+  if(rs){ for(let i=0;i<rs;i++){ st.party.forEach(p=>{ const pool=BOONS.filter(b=>b.t===0); pool[Math.floor(Math.random()*pool.length)].f(p); }); } }
+}
+// Level the party up to match st.xp without UI side-effects (used by Foresight on run start).
+function checkLevelUpSilently(st){
+  st.party.forEach(p=>{
+    while(p.lvl<MAXLVL&&(p.xp||0)>=xpNeeded(p,p.lvl+1)){
+      p.lvl++;
+      const g={brom:[9,1],lyra:[6,3],zedd:[5,3]}[p.id];
+      const dminUp=p.lvl%2===0?1:0;
+      p.maxhp+=g[0];p.hp=p.maxhp;p.maxsp+=g[1];p.sp=p.maxsp;p.dmax+=1;p.dmin+=dminUp;
+    }
+  });
+}
   const REDUCE=(()=>{try{return window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){return false;}})();
 const motes=[];
-for(let i=0;i<14;i++)motes.push({x:Math.random()*W,y:Math.random()*H,v:0.12+Math.random()*0.25,a:0.08+Math.random()*0.16});
+for(let i=0;i<14;i++)motes.push({x:sysRandom()*W,y:sysRandom()*H,v:0.12+sysRandom()*0.25,a:0.08+sysRandom()*0.16});
 function addFloater(x,y,txt,col){floaters.push({x,y,txt,col,life:46,vy:-0.9});}
 function spawnParticles(x,y,col,n){
-  for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.7)*4,life:18+rnd(0,12),col});
+  for(let i=0;i<n;i++)particles.push({x,y,vx:(sysRandom()-0.5)*4,vy:(sysRandom()-0.7)*4,life:18+Math.floor(sysRandom()*13),col});
 }
 
 function brickFront(r,c){
@@ -730,7 +1027,7 @@ function drawMaze(bob){
   if(!REDUCE){
     ctx.fillStyle=pal;
     for(const m of motes){
-      m.y-=m.v;if(m.y<0){m.y=H;m.x=Math.random()*W;}
+      m.y-=m.v;if(m.y<0){m.y=H;m.x=sysRandom()*W;}
       ctx.globalAlpha=m.a*(0.6+0.4*Math.sin(mazeT/20+m.x));
       ctx.fillRect(m.x,m.y,1.6,1.6);
     }
@@ -842,7 +1139,7 @@ function drawMap(){
       if(c==="R"){ctx.fillStyle="#62e6d4";ctx.fillText("?",mx,my);}
       if(c==="M"){ctx.fillStyle="#ffd23f";ctx.fillText("$",mx,my);}
       if(c==="B"){ctx.fillStyle="#ff5a4d";ctx.fillText("Ω",mx,my);}
-      if(S.sprung.has(x+","+y)){ctx.fillStyle="#ff5a4d";ctx.fillText("^",mx,my);}
+
     }
   }
   const px=ox+S.x*cs+cs/2,py=oy+S.y*cs+cs/2;
@@ -856,24 +1153,37 @@ function drawMap(){
 }
 // Color-coded legend so every glyph on the map is explained.
 function drawMapLegend(){
-  const items=[
-    [theme().c,"\u25B2","you"],
-    ["#6fe06f",">","stairs down"],
-    ["#6fe06f","<","stairs up"],
-    ["#ffd23f","$","shop"],
-    ["#ffd23f","\u25A1","chest"],
-    ["#ffd23f","\u26B7","key"],
-    ["#9a6a2a","\u2021","locked door"],
-    ["#62e6d4","?","riddle"],
-    ["#62e6d4","\u2248","fountain"],
-    ["#ff5a4d","^","trap (sprung)"],
-    ["#ff5a4d","\u03A9","boss"]
+  // Collect which feature-cells are actually visible on the map right now, so the legend
+  // only explains symbols that are present (resolved chests/keys/riddles/bosses are already
+  // turned into "." or ">" on the grid, so they drop out automatically).
+  const present=new Set();
+  const g=S.grid;
+  if(g){
+    for(let y=0;y<g.length;y++)for(let x=0;x<g[0].length;x++){
+      if(!S.visited.has(x+","+y))continue;
+      present.add(g[y][x]);
+    }
+  }
+  const all=[
+    [theme().c,"\u25B2","you",      true],            // always shown
+    ["#6fe06f",">","stairs down",    present.has(">")],
+    ["#6fe06f","<","stairs up",      present.has("<")],
+    ["#ffd23f","$","shop",           present.has("M")],
+    ["#ffd23f","\u25A1","chest",     present.has("C")],
+    ["#ffd23f","\u26B7","key",       present.has("K")],
+    ["#9a6a2a","\u2021","locked door",present.has("D")],
+    ["#62e6d4","?","riddle",         present.has("R")],
+    ["#62e6d4","\u2248","fountain",  present.has("F")],
+    ["#ff5a4d","\u03A9","boss",      present.has("B")]
   ];
+  const items=all.filter(it=>it[3]).map(it=>[it[0],it[1],it[2]]);
+  if(items.length<=1)return;   // nothing notable to explain yet
   ctx.textBaseline="middle";ctx.font="9px monospace";
-  // lay out across two rows centered at the bottom
-  const rowY=[H-20,H-7];
-  const perRow=Math.ceil(items.length/2);
-  for(let r=0;r<2;r++){
+  // lay out: single centered row when few items, two rows when many
+  const twoRows=items.length>6;
+  const rowY=twoRows?[H-20,H-7]:[H-9];
+  const perRow=twoRows?Math.ceil(items.length/2):items.length;
+  for(let r=0;r<rowY.length;r++){
     const slice=items.slice(r*perRow,(r+1)*perRow);
     // measure total width to center
     let widths=slice.map(([col,gl,label])=>{ctx.font="9px monospace";return ctx.measureText(gl+" "+label).width+12;});
@@ -1133,7 +1443,7 @@ function drawCombat(){
   animT++;
   const pal=theme().c;
   ctx.save();
-  if(shakeT>0){shakeT--;ctx.translate((Math.random()-0.5)*shakeT,(Math.random()-0.5)*shakeT);}
+  if(shakeT>0){shakeT--;ctx.translate((sysRandom()-0.5)*shakeT,(sysRandom()-0.5)*shakeT);}
   ctx.fillStyle="#050308";ctx.fillRect(-10,-10,W+20,H+20);
   const r=rectAt(2);
   ctx.strokeStyle=pal+"30";ctx.lineWidth=1;
@@ -1345,15 +1655,18 @@ function boonLine(p){
 }
 let __charSheetReturn="explore";
 function showCharSheet(p){
-  // Remember what screen is currently showing so BACK returns there (not always the dungeon).
-  const hdr=document.querySelector("#actorline");
-  const htxt=hdr?hdr.textContent:"";
-  if(/THE ARMORY/.test(htxt))__charSheetReturn="armory";
-  else if(/MERCHANT BONES/.test(htxt))__charSheetReturn="shop";
-  else __charSheetReturn="explore";
+  // Remember where we came from — but only when opening from a NON-charsheet screen, so that
+  // tapping a second party member while already viewing one keeps the original origin (e.g. armory).
+  if(!document.getElementById("csback")){
+    const hdr=document.querySelector("#actorline");
+    const htxt=hdr?hdr.textContent:"";
+    if(/THE ARMORY/.test(htxt))__charSheetReturn="armory";
+    else if(/MERCHANT BONES/.test(htxt))__charSheetReturn="shop";
+    else __charSheetReturn="explore";
+  }
   const unlocks=SKILL_UNLOCKS[p.id];
   const next=unlocks.find(([l])=>l>p.lvl);
-  const needXp=p.lvl<MAXLVL?xpForLevel(p.lvl+1)-S.xp:0;
+  const needXp=p.lvl<MAXLVL?xpNeeded(p,p.lvl+1)-(p.xp||0):0;
   ctl.innerHTML=`<div class="sheet">
     <b>⟡ ${p.name} the ${p.cls} · Level ${p.lvl} ⟡</b><br>
     HP ${Math.max(0,p.hp)}/${p.maxhp} · SP ${p.sp}/${p.maxsp}<br>
@@ -1361,6 +1674,7 @@ function showCharSheet(p){
     ${p.s?`Spell Power +${p.s.b} <span style="color:#7d7490">(${p.s.name})</span><br>`:""}
     Armor ${p.a.b+(p.innate||0)} <span style="color:#7d7490">(${p.a.name} +${p.a.b}${p.innate?" · innate +"+p.innate:""})</span><br>
     ${boonLine(p)}
+    ${(S.relics&&S.relics.length)?`<span style="color:#b88cff">Relics: ${S.relics.map(id=>{const r=RELICS.find(x=>x.id===id);return r?r.name:id;}).join(" · ")}</span><br>`:""}
     ${p.lvl<MAXLVL?`<span style="color:#7d7490">${Math.max(0,needXp)} XP to next level</span>`:`<span style="color:#ffd23f">MAX LEVEL</span>`}
     ${next?`<br><span style="color:#62a8e6">L${next[0]}: learns ${next[1]}</span>`:""}
   </div>
@@ -1410,9 +1724,9 @@ function showExploreControls(){
       <button class="ctl" id="ub" style="grid-column:2" aria-label="Turn around">↶</button>
       <button class="ctl" id="maptoggle" style="font-size:13px" aria-label="Toggle map">${S.mapOn?"VIEW":"MAP"}</button>
     </div>`;
-  document.getElementById("tl").onclick=()=>{S.dir=(S.dir+3)%4;sfx.step();render();};
-  document.getElementById("tr").onclick=()=>{S.dir=(S.dir+1)%4;sfx.step();render();};
-  document.getElementById("ub").onclick=()=>{S.dir=(S.dir+2)%4;sfx.step();render();};
+  document.getElementById("tl").onclick=()=>{snapLog();S.dir=(S.dir+3)%4;sfx.step();render();};
+  document.getElementById("tr").onclick=()=>{snapLog();S.dir=(S.dir+1)%4;sfx.step();render();};
+  document.getElementById("ub").onclick=()=>{snapLog();S.dir=(S.dir+2)%4;sfx.step();render();};
   document.getElementById("fw").onclick=moveForward;
   document.getElementById("maptoggle").onclick=toggleMap;
 }
@@ -1432,6 +1746,7 @@ function markVisited(){
 function stepBob(){if(!REDUCE)bobT=6;}
 function moveForward(){
   if(S.over||S.combat)return;
+  snapLog();
   const[fx,fy]=fwd();
   const nx=S.x+fx,ny=S.y+fy;
   const c=cell(nx,ny);
@@ -1575,7 +1890,7 @@ function pruneFloors(){
 }
 function descend(){
   S.floors[S.depth]=snapshotFloor();
-  S.depth++;
+  S.depth++; maybeRekeyMusic();
   const f=S.floors[S.depth];
   if(f){
     restoreFloor(f);
@@ -1611,7 +1926,51 @@ const EVENTS=[
   {t:"A cursed mist saps your strength — but steels your resolve.",
    f:()=>{S.party.forEach(p=>{if(p.alive)p.hp=Math.max(1,p.hp-6);});const g=rnd(20,40);S.gold+=g;log("You scavenge "+g+"g from the mist's victims.","gold");},cls:"dmg"}
 ];
+const CHOICE_EVENTS=[
+  {t:"A grinning skull rattles a cup of dice. \"Double your purse,\" it whispers, \"or feed me half…\"",
+   choices:[
+     {label:"WAGER YOUR GOLD",need:s=>s.gold>0,f:()=>{ if(Math.random()<0.5){const g=S.gold;S.gold+=g;log("The dice come up bone-white — your gold DOUBLES! (+"+g+")","gold");} else {const g=Math.floor(S.gold/2);S.gold-=g;log("Snake eyes. The skull swallows "+g+"g and cackles.","dmg");} }},
+     {label:"WALK AWAY",f:()=>{log("You leave the skull rattling in the dark.","arc");}}
+   ]},
+  {t:"An altar slick with old blood. Power radiates from it — but it wants something in return.",
+   choices:[
+     {label:"LAY YOUR HANDS ON IT",f:()=>{S.party.forEach(p=>{if(p.alive){p.hp=Math.max(1,Math.round(p.hp*0.82));p.dmin+=2;p.dmax+=2;}});log("The altar drinks your strength and gives back fury. +2 damage to all.","good");}},
+     {label:"LEAVE IT SEALED",f:()=>{log("Some bargains aren't worth the price. You move on.","arc");}}
+   ]},
+  {t:"A hooded delver offers a wrapped bundle. \"Forty gold. No refunds in the dark.\"",
+   choices:[
+     {label:"BUY THE BUNDLE (40g)",need:s=>s.gold>=40,f:()=>{S.gold-=40;const r=Math.random();if(r<0.4){S.potions+=2;log("Inside: two healing potions. A fair deal.","gold");}else if(r<0.7){S.elixirs+=1;log("Inside: a battle elixir. Lucky.","arc");}else{const t=Math.max(0,depthTier()+1);const slot=Math.random()<0.5?"w":"a";S.pending={item:{slot,name:gearName(slot,t),b:tierBonus(t)},back:"explore"};log("Inside: a "+S.pending.item.name+"!","gold");}}},
+     {label:"PASS",f:()=>{log("The figure shrugs and melts back into shadow.","arc");}}
+   ]},
+  {t:"A crack in the wall hums in tune with the Harp. Something glints inside — just out of easy reach.",
+   choices:[
+     {label:"REACH IN",f:()=>{if(Math.random()<0.6){const g=rnd(25,55)+S.depth*4;S.gold+=g;S.party.forEach(p=>{p.sp=Math.min(p.maxsp,p.sp+8);});log("Your fingers close on coins and a thread of song. +"+g+"g, SP restored.","gold");}else{S.party.forEach(p=>{if(p.alive)p.hp=Math.max(1,p.hp-8);});log("Something bites! The crevice was not empty.","dmg");}}},
+     {label:"LEAVE IT",f:()=>{log("You decide some glitter isn't worth your fingers.","arc");}}
+   ]},
+  {t:"A survivor lies pinned beneath fallen stone, barely breathing. They have a heavy purse.",
+   choices:[
+     {label:"FREE THEM",f:()=>{S.party.forEach(p=>{if(p.alive){p.hp=Math.min(p.maxhp,p.hp+12);p.sp=Math.min(p.maxsp,p.sp+8);}});log("They gasp their thanks and share what they have. The party feels lighter.","good");}},
+     {label:"TAKE THE PURSE",f:()=>{const g=rnd(40,80)+S.depth*3;S.gold+=g;log("You pry the purse loose. +"+g+"g. The dark feels a little colder.","dmg");}}
+   ]}
+];
+function choiceEvent(){
+  const pool=CHOICE_EVENTS.filter(e=>true);
+  const e=pool[Math.floor(Math.random()*pool.length)];
+  const btns=e.choices.map((c,i)=>{
+    const dis=c.need&&!c.need(S);
+    return `<button class="act wide" data-ce="${i}" ${dis?"disabled":""}>${c.label}</button>`;
+  }).join("");
+  ctl.innerHTML=`<div class="sheet" style="color:#bdb3cf"><b style="color:var(--gold)">⟡ A TURN IN THE DARK ⟡</b><br><br>${e.t}</div><div id="acts">${btns}</div>`;
+  log(e.t,"arc");
+  ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
+    const c=e.choices[+b.dataset.ce]; if(!c)return;
+    c.f();sfx.loot();renderHud();renderParty();saveGame();
+    if(S.pending&&S.pending.item){render();showGiveControls();} else showExploreControls();
+  }));
+  render();
+}
 function descentEvent(){
+  if(Math.random()<0.5){choiceEvent();return;}
   const e=EVENTS[Math.floor(Math.random()*EVENTS.length)];
   ctl.innerHTML=`<div class="sheet" style="color:#bdb3cf"><b style="color:var(--gold)">⟡ A TURN IN THE DARK ⟡</b><br><br>${e.t}</div>
     <div id="acts"><button class="act wide" id="evok">CONTINUE</button></div>`;
@@ -1623,7 +1982,7 @@ function descentEvent(){
 }
 function ascend(){
   S.floors[S.depth]=snapshotFloor();
-  S.depth--;
+  S.depth--; maybeRekeyMusic();
   const f=S.floors[S.depth];
   if(f){
     restoreFloor(f);
@@ -1703,7 +2062,7 @@ function showShopControls(page){
   tip("shop");
   const potP=15+Math.floor(S.depth*1.5),elixP=45+S.depth*2,tonP=20+S.depth,trainP=40+25*S.trains;
   if(page==="main"){
-    ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ MERCHANT BONES · DEPTH ${S.depth} ⟡<small>buy permanent stats with GOLD — no XP, no skills, whole party at once</small></div>
+    ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ MERCHANT BONES · DEPTH ${S.depth} ⟡<small>permanent upgrades, bought with gold</small></div>
     <div id="acts">
       <button class="act shop" data-s="pot" ${S.gold<potP?"disabled":""}>POTION · ${potP}g<small>+20 HP, anytime</small></button>
       <button class="act shop" data-s="elix" ${S.gold<elixP?"disabled":""}>ELIXIR · ${elixP}g<small>heal party ~70%, in battle</small></button>
@@ -1779,11 +2138,13 @@ function startCombat(types){
     const b=BOSSES[bi%BOSSES.length];
     const cyc=Math.floor(bi/BOSSES.length);
     const hm=1+0.22*(S.depth-1),dm=1+0.13*(S.depth-1);
-    foes=[{type:b.art,name:b.name+(cyc>0?" "+(ROMAN[cyc]||cyc+1):""),boss:true,
-      hp:Math.round(160*hm),maxhp:Math.round(160*hm),
+    foes=[{type:b.art,name:b.name+(cyc>0?" "+(ROMAN[cyc]||cyc+1):""),boss:true,mech:b.mech||null,
+      hp:Math.round(160*hm),maxhp:Math.round(160*hm),bcd:2,enrage:0,
       dmin:Math.round(13*dm),dmax:Math.round(20*dm),
       xp:Math.round(80*(1+0.13*(S.depth-1))),gold:Math.round(90*(1+0.13*(S.depth-1))),
-      flash:0,lunge:0,stun:0,sx:CX,sy:CY,ssc:1}];
+      flash:0,lunge:0,stun:0,shield:0,windup:0,sx:CX,sy:CY,ssc:1}];
+    S.bossDef=b.defeat||null;
+    if(b.intro)setTimeout(()=>log(b.intro,"dmg"),60);
   } else {
     const counts={};
     foes=types.map(t=>{
@@ -1801,7 +2162,7 @@ function startCombat(types){
   }
   S.combat={foes,phase:"pick",order:S.party.filter(p=>p.alive).map(p=>p.id),idx:0,target:0};
   S.chant=0;floaters=[];particles=[];effects=[];shakeT=0;
-  S.party.forEach(p=>{p.guard=false;p.cd={};});
+  S.party.forEach(p=>{p.guard=false;p.cd={};p.stun2=0;});
   // Second Wind boon: restore some HP as battle is joined.
   S.party.forEach(p=>{ if(p.alive&&p.secondwind&&p.hp<p.maxhp){
     const heal=Math.ceil(p.maxhp*0.20*p.secondwind);
@@ -1813,6 +2174,8 @@ function startCombat(types){
     log("They strike first — AMBUSH!","dmg");
     enemyTurn();return;
   }
+  {const p0=pcById(S.combat.order[S.combat.idx]);
+   if(p0&&p0.stun2>0){p0.stun2=0;log(p0.name+" is bound and loses the turn!","arc");nextActor();return;}}
   showCombatControls();
 }
 function livingFoes(){return S.combat.foes.filter(f=>f.hp>0);}
@@ -1899,6 +2262,16 @@ function rollHit(base,canMissCrit,actor){
   return{d,crit};
 }
 let lastActor=null;
+const ASSIST_SHARE=0.25;  // non-killers earn this fraction of a kill's XP
+function awardKillXp(foe,killer){
+  if(!foe||foe.xpGiven)return;
+  foe.xpGiven=true;
+  const base=foe.xp||0; if(base<=0)return;
+  const assist=Math.floor(base*ASSIST_SHARE);
+  S.party.forEach(pp=>{ if(!pp.alive)return;
+    pp.xp=(pp.xp||0)+((pp===killer)?base:assist);
+  });
+}
 function hitFoe(foe,amount,label,cls,crit,pcol){
   foe.flash=8;
   if(foe.shield>0){
@@ -1912,6 +2285,8 @@ function hitFoe(foe,amount,label,cls,crit,pcol){
     }
   }
   foe.hp-=amount;
+  if(lastActor)foe.lastHitBy=lastActor;
+  if(foe.hp<=0&&!foe.xpGiven){awardKillXp(foe,lastActor);}
   if(foe.hp<=0&&lastActor&&lastActor.lifesteal&&lastActor.alive){
     const heal=Math.min(lastActor.maxhp-lastActor.hp,4*lastActor.lifesteal);
     if(heal>0){lastActor.hp+=heal;addFloater(lastActor===0?CX:CX,40,"+"+heal,"#6fe06f");log(lastActor.name+" drinks life (+"+heal+" HP).","good");}
@@ -2028,8 +2403,10 @@ function nextActor(){
   const c=S.combat;if(!c)return;
   c.idx++;
   while(c.idx<c.order.length&&(!pcById(c.order[c.idx])||!pcById(c.order[c.idx]).alive))c.idx++;
-  if(c.idx>=c.order.length)enemyTurn();
-  else showCombatControls();
+  if(c.idx>=c.order.length){enemyTurn();return;}
+  const p=pcById(c.order[c.idx]);
+  if(p&&p.stun2>0){p.stun2=0;log(p.name+" is bound and loses the turn!","arc");renderParty();setTimeout(nextActor,500);return;}
+  showCombatControls();
 }
 
 function weakestParty(){return livingParty().slice().sort((a,b)=>(a.hp/a.maxhp)-(b.hp/b.maxhp))[0];}
@@ -2087,6 +2464,71 @@ function enemyTurn(){
       sfx.miss();
       log(f.name+" lashes out and misses.");
       renderParty();setTimeout(step,500);return;
+    }
+    // ----- BOSS SIGNATURE MECHANICS -----
+    if(f.boss&&f.mech){
+      // mild enrage for every boss as it nears death
+      f.enrage=(f.hp<f.maxhp*0.33)?0.3:(f.hp<f.maxhp*0.6?0.15:0);
+      f.bcd=(f.bcd||0)-1;
+      if(f.bcd<=0){
+        f.bcd=3; f.lunge=12;
+        if(f.mech==="bulwark"){
+          f.shield=(f.shield||0)+Math.round(22+S.depth*2.2);
+          log(f.name+" sets its tower shield — break through it!","arc");
+          sfx.song();renderCombatRefresh();setTimeout(step,560);return;
+        }
+        if(f.mech==="wail"){
+          log(f.name+" looses a scream that claws at every mind!","dmg");
+          sfx.doom();shakeT=12;hurtVignette=16;
+          livingParty().forEach(t=>{
+            let d2=Math.max(1,Math.round(rnd(f.dmin,f.dmax)*0.6)-(t.innate||0));
+            if(t.guard)d2=Math.max(1,Math.ceil(d2/2));
+            t.hp-=d2;if(Math.random()<0.35)t.stun2=1;
+            if(t.hp<=0&&t.alive){t.alive=false;t.hp=0;S.deaths++;log(t.name+" falls!","dmg");}
+          });
+          renderParty();
+          if(livingParty().length===0){setTimeout(loseGame,500);return;}
+          setTimeout(step,600);return;
+        }
+        if(f.mech==="immolate"){
+          log(f.name+" breathes ruin — the party is set ALIGHT!","dmg");
+          sfx.doom();shakeT=10;hurtVignette=14;
+          livingParty().forEach(t=>{t.burn=Math.max(t.burn||0,2);});
+          renderParty();setTimeout(step,600);return;
+        }
+        if(f.mech==="chain"){
+          const t=weakestParty()||targets[0];
+          if(t){t.stun2=1;log("The Gaoler's chains snap taut — "+t.name+" is BOUND!","dmg");}
+          const m=scaleM(poolFor()[rnd(0,2)]);
+          c.foes.push({type:m.type,name:"Jailer "+m.name,hp:m.hp,maxhp:m.hp,dmin:m.dmin,dmax:m.dmax,
+            xp:Math.round(m.xp*0.5),gold:0,boss:false,role:null,shield:0,windup:0,
+            flash:0,lunge:0,stun:0,sx:CX,sy:CY,ssc:1});
+          sfx.doom();renderCombatRefresh();setTimeout(step,600);return;
+        }
+        if(f.mech==="litany"){
+          const heal=Math.round(f.maxhp*0.12);
+          f.hp=Math.min(f.maxhp,f.hp+heal);f.flash=8;
+          log(f.name+" intones a litany — its wounds close ("+heal+" HP). Burst it down!","arc");
+          sfx.song();renderCombatRefresh();setTimeout(step,560);return;
+        }
+        if(f.mech==="discord"){
+          if(Math.random()<0.5){
+            log(f.name+" strikes a broken chord — the party's focus shatters!","dmg");
+            livingParty().forEach(t=>{t.sp=Math.max(0,t.sp-Math.round(6+S.depth*0.3));});
+            sfx.doom();renderParty();setTimeout(step,560);return;
+          } else {
+            const t=weakestParty()||targets[0];
+            let d2=Math.max(1,Math.round(rnd(f.dmin,f.dmax)*1.8)-(t.a.b)-(t.innate||0));
+            if(t.guard)d2=Math.max(1,Math.ceil(d2/2));
+            t.hp-=d2;sfx.doom();shakeT=12;hurtVignette=16;
+            log(f.name+" tears a discordant note through "+t.name+" — <b>"+d2+"</b> dmg!","dmg");
+            if(t.hp<=0&&t.alive){t.alive=false;t.hp=0;S.deaths++;log(t.name+" falls!","dmg");}
+            renderParty();
+            if(livingParty().length===0){setTimeout(loseGame,500);return;}
+            setTimeout(step,560);return;
+          }
+        }
+      }
     }
     // ----- ROLE TURNS (non-attacking specials) -----
     if(f.role==="windup"&&f.windup>0){
@@ -2166,7 +2608,7 @@ function enemyTurn(){
       if(t.thorns&&f.hp>0){
         const rfl=Math.max(1,Math.round(d*0.25*t.thorns));
         f.hp-=rfl;log("Thornmail bites back — "+f.name+" takes <b>"+rfl+"</b>.","good");
-        if(f.hp<=0){f.hp=0;f.alive=false;S.kills++;log(f.name+" is slain by its own fury!","good");}
+        if(f.hp<=0){f.hp=0;f.alive=false;awardKillXp(f,t);log(f.name+" is slain by its own fury!","good");}
       }
       if(t.hp<=0){t.alive=false;t.hp=0;S.deaths++;log(t.name+" falls!","dmg");}
       if(t.alive){
@@ -2184,10 +2626,12 @@ function enemyTurn(){
 
 function grantSpoils(){
   const c=S.combat;
-  let xp=0,gold=0;
-  c.foes.forEach(f=>{xp+=f.xp;gold+=f.gold;});
-  S.gold+=gold;S.kills+=c.foes.length;S.xp+=xp;
-  log("Victory! +"+xp+" XP, +"+gold+" gold.","gold");
+  let gold=0;
+  c.foes.forEach(f=>{gold+=f.gold;});
+  // Safety net: credit any unawarded kills (e.g. odd death paths) to whoever last hit them.
+  c.foes.forEach(f=>{ if(f.hp<=0&&!f.xpGiven){awardKillXp(f, f.lastHitBy||S.party.find(q=>q.alive)); } });
+  S.gold+=gold;S.kills+=c.foes.length;
+  log("Victory! +"+gold+" gold. The slain feed their slayers' strength.","gold");
   checkLevelUp();
 }
 function victoryCombat(){
@@ -2205,13 +2649,33 @@ function winBoss(){
   const t=Math.max(0,depthTier()+2);
   const slot=Math.random()<0.5?"w":"a";
   const item={slot,name:gearName(slot,t),b:tierBonus(t)};
-  log("The warden crumbles. A lock of the song springs open — the note rolls free, one turn truer.","good");
+  if(S.bossDef)log(S.bossDef,"good");
+  log("A lock of the song springs open — the note rolls free, one turn truer.","good");
   log("Beneath the throne: stairs, and a <b>"+item.name+" +"+item.b+"</b> left by the fallen.","gold");
   log("Far below, Thessaly hears it too. He plays faster. He is afraid now.","arc");
   S.combat=null;S.chant=0;floaters=[];particles=[];effects=[];shakeT=0;
   S.party.forEach(p=>{p.poison=0;p.burn=0;});
   S.pending={item,back:"explore"};
-  render();showGiveControls();
+  render();
+  // A vanquished warden yields a relic — then the dropped gear.
+  if(!grantRelicChoice(()=>{render();showGiveControls();})) showGiveControls();
+}
+
+function showRelicPicker(){
+  const job=S.pendingRelic; if(!job){showExploreControls();return;}
+  const btns=job.picks.map((r,i)=>`<button class="act wide" data-relic="${i}">${r.name}<small>${r.desc}</small></button>`).join("");
+  ctl.innerHTML=`<div id="actorline" style="color:#b88cff">✦ A RELIC OF THE DEEP ✦<small>the warden's power is yours to claim — choose one</small></div>
+    <div id="acts">${btns}</div>`;
+  ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
+    const r=job.picks[+b.dataset.relic]; if(!r)return;
+    S.relics=S.relics||[]; S.relics.push(r.id); r.f();
+    sfx.fanfare();
+    log("You claim the "+r.name+". "+r.desc+".","good");
+    S.pendingRelic=null;
+    renderHud();renderParty();saveGame();
+    if(job.after)job.after(); else showExploreControls();
+  }));
+  render();
 }
 const BOONS=[
   // —— common (any level) ——
@@ -2257,7 +2721,7 @@ const LVL_FLAVOR={
 };
 function checkLevelUp(){
   S.party.forEach(p=>{
-    while(p.lvl<MAXLVL&&S.xp>=xpForLevel(p.lvl+1)){
+    while(p.lvl<MAXLVL&&(p.xp||0)>=xpNeeded(p,p.lvl+1)){
       p.lvl++;
       const g={brom:[9,1],lyra:[6,3],zedd:[5,3]}[p.id];
       const dminUp=p.lvl%2===0?1:0;
@@ -2343,25 +2807,69 @@ function loseGame(){
   S.combat=null;floaters=[];particles=[];effects=[];shakeT=0;
   S.party.forEach(p=>{p.poison=0;p.burn=0;});
   sfx.doom();
+  stopMusic();
+  // Fill in concrete implications for each choice.
+  const goldKept=Math.floor(S.gold*0.4), goldLost=S.gold-goldKept;
+  let echoes=Math.round(echoesFor(S.depth,S.kills)*(1+(S.echoBonus||0)));
+  if(S.daily&&META.daily.claimed===todayStr())echoes=0;
+  const risen=S.rises||0;
+  const riseEl=document.getElementById("go_rise");
+  if(riseEl)riseEl.innerHTML=
+    `Keep <b>every level, boon &amp; relic</b> — but the fall takes its toll: <b style="color:var(--blood)">all weapons are lost</b> (reset to bare hands), you wake at <b>~45% HP / 50% SP</b>, and it costs <b>${goldLost}g</b> (you keep ${goldKept}g). You'll need to re-arm from shops and the wardens you slay.<br>`+
+    `<span style="color:#7d7490">Echoes bank only when a run ends — so the deeper you ultimately reach, the bigger the eventual payout.${risen?` You've risen ${risen}× this run.`:""}</span>`;
+  const endEl=document.getElementById("go_end");
+  if(endEl)endEl.innerHTML=
+    `Bank <b style="color:#b88cff">✦ ${echoes} Echoes</b> now${echoes?` toward permanent powers at <b>The Threshold</b>`:` (today's Daily already paid out)`}. Your records &amp; deeds are kept.<br>`+
+    `<span style="color:#7d7490">This descent's depth, gold and party reset — you begin again at Depth 1, but stronger for what you buy.</span>`;
+  const rb=document.getElementById("retry");
+  if(rb)rb.textContent=echoes?("END RUN — BANK ✦ "+echoes+" ECHOES"):"END RUN";
   document.getElementById("gameover").classList.remove("hidden");
 }
 function riseAgain(){
-  S.over=false;S.rises++;
+  S.over=false;S.rises++;META.totalRises=(META.totalRises||0)+1;saveMeta();
   S.gold=Math.floor(S.gold*0.4);
-  S.party.forEach(p=>{p.alive=true;p.hp=Math.ceil(p.maxhp*0.45);p.sp=Math.ceil(p.maxsp*0.5);p.poison=0;p.burn=0;});
+  S.party.forEach(p=>{p.alive=true;p.hp=Math.ceil(p.maxhp*0.45);p.sp=Math.ceil(p.maxsp*0.5);p.poison=0;p.burn=0;
+    p.w={name:"Bare Hands",b:0};});
   S.x=1;S.y=1;S.dir=1;S.calm=0;S.chant=0;
   markVisited();
   document.getElementById("gameover").classList.add("hidden");
-  log("You wake at the stair, soaked and half your purse gone. The dark waits.","arc");
+  startMusic();
+  log("You wake at the stair — soaked, half your purse gone, and your weapons lost to the dark. Bare hands will have to do.","dmg");
   saveGame();
   render();showExploreControls();
 }
 function endRun(){
-  clearSave();savedData=null;
+  const isDaily=!!S.daily;
+  if(!isDaily){clearSave();savedData=null;}
   document.getElementById("gameover").classList.add("hidden");
   const mins=Math.max(1,Math.round((Date.now()-S.t0)/60000));
   const lvl=S.party[0].lvl;
+
+  // —— Echo payout (daily: only the first attempt each day pays, to discourage seed-farming) ——
+  let earned=Math.round(echoesFor(S.depth,S.kills)*(1+(S.echoBonus||0)));
+  if(isDaily && META.daily.claimed===todayStr()) earned=0;
+  META.echoes+=earned; META.totalEchoes+=earned; META.runs+=1;
+  META.bestDepth=Math.max(META.bestDepth,S.depth);
+  META.bestLevel=Math.max(META.bestLevel,lvl);
+  META.totalKills+=S.kills;
+
+  // —— Daily record ——
+  if(isDaily){
+    if(S.depth>META.daily.bestDepth)META.daily.bestDepth=S.depth;
+    if(earned>0)META.daily.claimed=todayStr();
+  }
+
+  // —— Run history (most recent first, keep 12) ——
+  META.history.unshift({depth:S.depth,lvl,kills:S.kills,gold:S.gold,mins,daily:isDaily,ts:Date.now()});
+  if(META.history.length>12)META.history.length=12;
+
+  // —— Achievements ——
+  const newAch=evalAchievements({depth:S.depth,kills:S.kills,lvl});
+  saveMeta();
+  if(isDaily)unseedRun();
+
   document.getElementById("rstats").innerHTML=
+    `${isDaily?'<b style="color:#7fd0ff">◆ DAILY CHALLENGE ◆</b><br>':''}`+
     `Reached <b>Depth ${S.depth}</b> — ${theme().n}<br>`+
     `Level ${lvl} party · ${S.kills} foes slain · ${S.gold}g held<br>`+
     `${S.steps} steps · ${mins} min in the dark`;
@@ -2374,6 +2882,15 @@ function endRun(){
   else if(S.depth>=5)g+="DELVER";
   else g+="WANDERER";
   document.getElementById("rgrade").textContent=g;
+  let echoLine = earned>0
+    ? `<b style="color:#b88cff">✦ ${earned} Echoes</b> drift up from the deep.<br>`
+    : (isDaily?`<span style="color:#7d7490">Today's Daily already paid its Echoes.</span><br>`:``);
+  echoLine += `<span style="color:#7d7490;font-size:11px">${META.echoes} Echoes saved · best depth ${META.bestDepth} · ${META.runs} runs`+
+    (isDaily?` · daily streak ${META.daily.streak}`:``)+`</span>`;
+  if(newAch.length){
+    echoLine += `<br><span style="color:#ffd23f;font-size:11px">★ Unlocked: ${newAch.map(a=>a.name).join(" · ")}</span>`;
+  }
+  document.getElementById("rechoes").innerHTML=echoLine;
   document.getElementById("runend").classList.remove("hidden");
 }
 
@@ -2403,9 +2920,10 @@ function serialize(){
     party:S.party,gold:S.gold,potions:S.potions,elixirs:S.elixirs,xp:S.xp,trains:S.trains,
     steps:S.steps,calm:S.calm,kills:S.kills,deaths:S.deaths,rises:S.rises,
     bossSummoned:S.bossSummoned,pending:S.pending||null,floors:S.floors,boonQueue:S.boonQueue||[],skillQueue:S.skillQueue||[],riddleBag:S.riddleBag||[],lastRiddle:S.lastRiddle,tipsSeen:S.tipsSeen||{},
+    relics:S.relics||[],echoBonus:S.echoBonus||0,
     elapsed:Date.now()-S.t0});
 }
-function saveGame(){
+function saveGame(){if(S&&S.daily)return;
   if(!S||S.over||S.combat)return;
   try{store.set(SAVE_KEY,serialize());}catch(e){}
 }
@@ -2431,16 +2949,20 @@ function bootFrom(d){
   Object.assign(S,{depth:d.depth,x:d.x,y:d.y,dir:d.dir,grid:d.grid,bossCell:d.bossCell,
     shop:d.shop,key:d.key,party:d.party,gold:d.gold,potions:d.potions,elixirs:d.elixirs,
     xp:d.xp,trains:d.trains,steps:d.steps,calm:d.calm,kills:d.kills,deaths:d.deaths,
-    rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{}});
+    rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{},relics:d.relics||[],echoBonus:d.echoBonus||0});
   S.visited=new Set(d.visited);S.trod=new Set(d.trod);S.traps=new Set(d.traps);S.sprung=new Set(d.sprung);
   S.riddle=RIDDLES[d.riddleIdx]||RIDDLES[0];S.riddleOrder=d.riddleOrder||null;
   S.bossSummoned=+S.bossSummoned||0;
   S.boonQueue=d.boonQueue||[];S.skillQueue=d.skillQueue||[];
   // Migrate older saves to the rebalanced XP curve: ensure XP is at least the base for the
   // party's highest level so no one is demoted or hit with a huge catch-up wall.
-  {const topLvl=Math.max(...S.party.map(p=>p.lvl||1));
-   const floorXp=xpForLevel(topLvl);
-   if(S.xp<floorXp)S.xp=floorXp;}
+  // Per-character XP migration. Old saves shared one XP pool (d.xp); give each hero at least
+  // the floor for their current level so none are demoted, then they diverge by who kills.
+  S.party.forEach(p=>{
+    const floorXp=xpNeeded(p,p.lvl||1);
+    if(typeof p.xp!=="number")p.xp=Math.max(d.xp||0,floorXp);
+    else p.xp=Math.max(p.xp,floorXp);
+  });
   S.t0=Date.now()-(d.elapsed||0);
   logs=[];floaters=[];particles=[];effects=[];hurtVignette=0;
   document.getElementById("intro").classList.add("hidden");
@@ -2458,20 +2980,43 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 /* ============================ TOGGLES & BOOT ============================ */
 document.getElementById("sndtoggle").onclick=function(){
   sndOn=!sndOn;this.textContent=sndOn?"SND ON":"SND OFF";
-  if(sndOn)sfx.loot();
+  if(sndOn){sfx.loot();if(musicOn&&S&&!S.over)startMusic();}else{stopMusic();}
 };
-function boot(){
-  clearSave();savedData=null;
+document.getElementById("musictoggle").onclick=function(){
+  musicOn=!musicOn;this.classList.toggle("off",!musicOn);
+  if(musicOn&&sndOn&&S&&!S.over)startMusic();else stopMusic();
+};
+function boot(daily){
+  if(!daily){clearSave();savedData=null;}
   document.getElementById("continuebtn").classList.add("hidden");
   S=newState();logs=[];floaters=[];particles=[];hurtVignette=0;
+  if(daily){ S.daily=true; seedRun(dailySeedFor(todayStr())); }
+  else { unseedRun(); applyMeta(S); }
+  startMusic();
   S.depth=1;genFloor();
-  document.getElementById("intro").classList.add("hidden");
-  document.getElementById("gameover").classList.add("hidden");
-  document.getElementById("runend").classList.add("hidden");
-  log("DEPTH 1 — The Cellars. The door seals behind you.");
-  log("Somewhere below, a harp string snaps in the dark…","arc");
+  ["intro","gameover","runend","threshold","chronicle","dailyscreen"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add("hidden");});
+  if(daily){
+    log("◆ DAILY CHALLENGE — "+todayStr()+". The same Deep for every delver today.","arc");
+    log("No Threshold powers here. Just you and the seed.","gold");
+  } else {
+    log("DEPTH 1 — The Cellars. The door seals behind you.");
+    log("Somewhere below, a harp string snaps in the dark…","arc");
+  }
   tip("move");
   render();showExploreControls();
+}
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function startDaily(){
+  const today=todayStr();
+  const D=META.daily;
+  if(D.date!==today){
+    D.streak = (D.date===yesterdayStr()) ? (D.streak||0)+1 : 1;
+    D.date=today; D.bestDepth=0;
+  }
+  D.attempts=(D.attempts||0)+1;
+  saveMeta();
+  sfx.door();
+  boot(true);
 }
 const LORE={
   brom:{tag:"— THE OATHKEEPER —",name:"VANN, SHIELD OF THE KEEP",
@@ -2498,12 +3043,114 @@ document.getElementById("loreback").onclick=()=>{
   document.getElementById("lorescreen").classList.add("hidden");
   document.getElementById("intro").classList.remove("hidden");
 };
+// ===================== THE THRESHOLD (meta-upgrade shop) =====================
+let __thresholdReturn="intro";
+function openThreshold(from){
+  __thresholdReturn=from||"intro";
+  ["intro","runend","gameover"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+  renderThreshold();
+  document.getElementById("threshold").classList.remove("hidden");
+}
+function closeThreshold(){
+  document.getElementById("threshold").classList.add("hidden");
+  document.getElementById(__thresholdReturn).classList.remove("hidden");
+  if(typeof refreshTitleMeta==="function")refreshTitleMeta();
+}
+function renderThreshold(){
+  document.getElementById("th_balance").textContent="✦ "+META.echoes+" Echoes";
+  const rows=META_UPGRADES.map(u=>{
+    const tier=metaTier(u.id);
+    const maxed=tier>=u.max;
+    const cost=maxed?0:u.cost(tier+1);
+    const afford=META.echoes>=cost;
+    const pips=Array.from({length:u.max},(_,i)=>i<tier?"◆":"◇").join("");
+    return `<div style="border:1px solid #2a2240;border-radius:6px;padding:8px 10px;margin-bottom:7px;background:var(--panel)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="color:#cbbdf0;letter-spacing:1px">${u.name}</b>
+        <span style="color:#6a5f80;font-size:11px;letter-spacing:2px">${pips}</span>
+      </div>
+      <div style="color:#8a7fa0;font-size:11px;margin:3px 0 7px">${maxed?"— fully attuned —":u.desc(tier+1)}</div>
+      ${maxed
+        ? `<button class="thbuy" disabled style="opacity:.5">MAX</button>`
+        : `<button class="thbuy" data-up="${u.id}" ${afford?"":"disabled"} style="${afford?"":"opacity:.5"}">BUY · ✦ ${cost}</button>`}
+    </div>`;
+  }).join("");
+  document.getElementById("th_list").innerHTML=rows;
+  document.querySelectorAll("#th_list .thbuy").forEach(b=>onTap(b,()=>{
+    const id=b.dataset.up; if(!id)return;
+    const u=META_UPGRADES.find(x=>x.id===id); const tier=metaTier(id);
+    if(tier>=u.max)return;
+    const cost=u.cost(tier+1);
+    if(META.echoes<cost)return;
+    META.echoes-=cost;
+    META.upgrades[id]=tier+1;
+    saveMeta();
+    if(typeof sfx!=="undefined")sfx.levelup&&sfx.levelup();
+    renderThreshold();
+  }));
+}
+document.getElementById("th_back").onclick=closeThreshold;
+
+// ===================== DAILY CHALLENGE screen =====================
+function renderDaily(){
+  const D=META.daily, today=todayStr();
+  const todayBest=(D.date===today)?D.bestDepth:0;
+  const claimed=(D.claimed===today);
+  document.getElementById("daily_info").innerHTML=
+    `<b>${today}</b><br>`+
+    `today's best: <b>Depth ${todayBest||"—"}</b> · streak: <b>${D.streak||0}</b> day${(D.streak===1)?"":"s"}<br>`+
+    `<span style="color:#7d7490;font-size:11px">${claimed?"Echoes already earned today — replay for score only":"reach as deep as you can to earn Echoes"}</span>`;
+}
+function openDaily(){
+  ["intro","runend"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+  renderDaily();
+  document.getElementById("dailyscreen").classList.remove("hidden");
+}
+document.getElementById("titledaily").onclick=()=>openDaily();
+document.getElementById("daily_back").onclick=()=>{document.getElementById("dailyscreen").classList.add("hidden");document.getElementById("intro").classList.remove("hidden");refreshTitleMeta();};
+document.getElementById("daily_begin").onclick=()=>startDaily();
+
+// ===================== CHRONICLE (stats · history · achievements) =====================
+function renderChronicle(){
+  document.getElementById("chron_stats").innerHTML=
+    `Best Depth <b style="color:var(--gold)">${META.bestDepth}</b> · Best Level <b>${META.bestLevel}</b><br>`+
+    `${META.runs} runs · ${META.totalKills} foes slain · ${META.totalRises||0} times risen<br>`+
+    `<b style="color:#b88cff">✦ ${META.totalEchoes}</b> Echoes earned all-told`;
+  const runs=META.history||[];
+  document.getElementById("chron_runs").innerHTML = runs.length
+    ? runs.map(r=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #211b34;padding:3px 0">
+        <span>${r.daily?'<span style="color:#7fd0ff">◆</span> ':''}Depth <b>${r.depth}</b> · Lv ${r.lvl}</span>
+        <span style="color:#7d7490">${r.kills} slain · ${r.mins}m</span></div>`).join("")
+    : `<div style="color:#7d7490">No descents recorded yet.</div>`;
+  document.getElementById("chron_ach").innerHTML = ACHIEVEMENTS.map(a=>{
+    const got=!!META.achievements[a.id];
+    return `<div style="display:flex;gap:8px;align-items:baseline;padding:2px 0;opacity:${got?1:0.45}">
+      <span style="color:${got?'#ffd23f':'#4a4458'}">${got?'★':'☆'}</span>
+      <span><b style="color:${got?'#e8dffb':'#8a8398'}">${a.name}</b> <span style="color:#7d7490;font-size:10px">— ${a.desc}</span></span></div>`;
+  }).join("");
+}
+function openChronicle(){
+  ["intro","runend"].forEach(id=>document.getElementById(id).classList.add("hidden"));
+  renderChronicle();
+  document.getElementById("chronicle").classList.remove("hidden");
+}
+document.getElementById("titlechronicle").onclick=()=>openChronicle();
+document.getElementById("chron_back").onclick=()=>{document.getElementById("chronicle").classList.add("hidden");document.getElementById("intro").classList.remove("hidden");refreshTitleMeta();};
+document.getElementById("tothreshold").onclick=()=>openThreshold("runend");
+document.getElementById("titlethreshold").onclick=()=>openThreshold("intro");
+function refreshTitleMeta(){
+  const el=document.getElementById("titlemeta"); if(!el)return;
+  if(META.runs>0||META.echoes>0){
+    el.innerHTML="✦ "+META.echoes+" Echoes · best depth "+META.bestDepth+" · "+META.runs+" runs";
+  } else { el.textContent=""; }
+}
+refreshTitleMeta();
 document.getElementById("begin").onclick=()=>{sfx.door();boot();};
 document.getElementById("continuebtn").onclick=()=>{
-  if(savedData){sfx.door();bootFrom(savedData);}
+  if(savedData){sfx.door();bootFrom(savedData);startMusic();}
 };
 document.getElementById("retry").onclick=()=>endRun();
-document.getElementById("again").onclick=boot;
+document.getElementById("again").onclick=()=>boot();
 document.getElementById("rise").onclick=riseAgain;
 
 window.addEventListener("keydown",e=>{
@@ -2533,9 +3180,9 @@ window.addEventListener("keydown",e=>{
     return;
   }
   if(k==="arrowup"||k==="w")moveForward();
-  else if(k==="arrowleft"||k==="a"){S.dir=(S.dir+3)%4;sfx.step();render();}
-  else if(k==="arrowright"||k==="d"){S.dir=(S.dir+1)%4;sfx.step();render();}
-  else if(k==="arrowdown"||k==="s"){S.dir=(S.dir+2)%4;sfx.step();render();}
+  else if(k==="arrowleft"||k==="a"){snapLog();S.dir=(S.dir+3)%4;sfx.step();render();}
+  else if(k==="arrowright"||k==="d"){snapLog();S.dir=(S.dir+1)%4;sfx.step();render();}
+  else if(k==="arrowdown"||k==="s"){snapLog();S.dir=(S.dir+2)%4;sfx.step();render();}
   else if(k==="m"||k===" "){e.preventDefault();toggleMap();}   // M or Space toggles the map
 });
 </script>
