@@ -49,7 +49,9 @@
   #log .new{color:var(--bone)} #log .old{color:#7d7490}
   #log .dmg{color:var(--blood)} #log .good{color:var(--hp)} #log .arc{color:var(--arc)} #log .gold{color:var(--gold)}
   #party{display:flex;gap:6px;margin-top:6px}
-  .pc{flex:1;border:1px solid #2a2240;border-radius:4px;background:var(--panel);padding:5px 6px;font-size:10px;transition:border-color .15s}
+  .pc{flex:1;border:1px solid #2a2240;border-radius:4px;background:var(--panel);padding:5px 6px;font-size:10px;transition:border-color .15s;position:relative}
+  .xpfloat{position:absolute;top:-4px;left:0;right:0;text-align:center;color:var(--arc);font-size:12px;font-weight:bold;pointer-events:none;text-shadow:0 0 7px rgba(98,168,230,.85);animation:xpup 1.7s ease-out forwards;z-index:6}
+  @keyframes xpup{0%{opacity:0;transform:translateY(10px)}18%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
   .pc .nm{color:var(--bone);font-size:11px;letter-spacing:1px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pc.active{border-color:var(--phos);box-shadow:0 0 8px rgba(255,182,72,.3)}
   .pc.dead{opacity:.4} .pc.dead .nm{color:var(--blood)}
@@ -118,7 +120,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b42</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b43</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -796,7 +798,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b42";
+const BUILD="b43";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -1575,24 +1577,51 @@ function loop(){
 }
 function drawLevelFlash(){
   lvlFlash--;
-  const a=lvlFlash/18;
+  const a=Math.max(0,lvlFlash/LVL_FLASH_DUR);
+  const grow=1-a;                 // 0 -> 1 across the effect
+  const pop=Math.sin(Math.min(1,grow*2.2)*Math.PI); // quick swell then settle
   ctx.save();
-  // golden vignette pulse
-  const g=ctx.createRadialGradient(CX,CY,40,CX,CY,W*0.7);
-  g.addColorStop(0,"rgba(255,210,63,0)");
-  g.addColorStop(1,"rgba(255,210,63,"+(a*0.5)+")");
+  // warm full-screen bloom
+  const g=ctx.createRadialGradient(CX,CY,20,CX,CY,W*0.8);
+  g.addColorStop(0,"rgba(255,225,120,"+(a*0.30)+")");
+  g.addColorStop(0.6,"rgba(255,190,50,"+(a*0.34)+")");
+  g.addColorStop(1,"rgba(120,70,10,"+(a*0.55)+")");
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  // rising sparks
-  ctx.fillStyle="rgba(255,210,63,"+a+")";
-  for(let i=0;i<10;i++){
-    const px=(CX+Math.sin(i*1.7+lvlFlash*0.3)*W*0.35);
-    const py=H-(18-lvlFlash)*8-(i%3)*14;
-    ctx.fillRect(px,py,2,2);
+  // expanding golden rings
+  ctx.lineWidth=2.5;
+  for(let r=0;r<3;r++){
+    const rad=grow*W*(0.30+r*0.20);
+    ctx.globalAlpha=a*(1-r*0.28);
+    ctx.strokeStyle="rgba(255,214,80,"+ctx.globalAlpha.toFixed(3)+")";
+    ctx.beginPath();ctx.arc(CX,CY,rad,0,Math.PI*2);ctx.stroke();
   }
-  // banner
-  ctx.globalAlpha=Math.min(1,a*1.6);
-  ctx.fillStyle="#ffd23f";ctx.font="bold 22px ui-monospace,monospace";ctx.textAlign="center";
-  ctx.fillText("◆ LEVEL UP ◆",CX,CY-6);
+  ctx.globalAlpha=1;
+  // upward burst of sparks
+  ctx.fillStyle="rgba(255,232,150,"+a+")";
+  for(let i=0;i<22;i++){
+    const ang=(i/22)*Math.PI*2;
+    const spread=grow*W*0.5*(0.5+((i%5)/6));
+    const px=CX+Math.cos(ang)*spread*0.5;
+    const py=H-(LVL_FLASH_DUR-lvlFlash)*6.5-(i%4)*16 - Math.sin(ang)*10;
+    const s=2+(i%3);
+    ctx.fillRect(px,py,s,s);
+  }
+  // two-line banner: LEVEL UP + who reached what
+  ctx.textAlign="center";
+  const scale=1+pop*0.14;
+  ctx.globalAlpha=Math.min(1,a*2);
+  ctx.save();ctx.translate(CX,CY-14);ctx.scale(scale,scale);
+  ctx.shadowColor="rgba(255,180,40,0.95)";ctx.shadowBlur=22;
+  ctx.fillStyle="#ffd23f";ctx.font="bold 32px ui-monospace,monospace";
+  ctx.fillText("◆ LEVEL UP ◆",0,0);
+  ctx.restore();
+  const lines=(lvlFlashLines&&lvlFlashLines.length)?lvlFlashLines:(lvlFlashText?[lvlFlashText]:[]);
+  if(lines.length){
+    ctx.globalAlpha=Math.min(1,a*2);
+    ctx.shadowColor="rgba(0,0,0,0.7)";ctx.shadowBlur=5;
+    ctx.fillStyle="#fff2cc";ctx.font="bold 14px ui-monospace,monospace";
+    lines.forEach((ln,i)=>ctx.fillText(ln,CX,CY+14+i*19));
+  }
   ctx.restore();
 }
 requestAnimationFrame(loop);
@@ -1626,6 +1655,18 @@ function renderHud(){
   document.getElementById("goldhud").textContent=S.gold+"g";
   document.getElementById("pothud").textContent=S.potions+" pot";
   document.getElementById("elixhud").textContent=S.elixirs+" elix";
+}
+function spawnXpFloaters(perId){
+  if(REDUCE)return;
+  const cards=document.querySelectorAll("#party .pc");
+  S.party.forEach((p,i)=>{
+    const d=perId[p.id]||0; if(d<=0)return;
+    const card=cards[i]; if(!card)return;
+    const f=document.createElement("div");
+    f.className="xpfloat"; f.textContent="+"+d+" XP";
+    card.appendChild(f);
+    setTimeout(()=>{try{f.remove();}catch(e){}},1750);
+  });
 }
 function renderParty(){
   const el=document.getElementById("party");
@@ -1722,6 +1763,7 @@ function showExploreControls(){
       <button class="ctl" id="tl" aria-label="Turn left">↰</button>
       <button class="ctl" id="fw" aria-label="Forward">▲</button>
       <button class="ctl" id="tr" aria-label="Turn right">↱</button>
+      <button class="ctl" id="leavebtn" style="grid-column:1;grid-row:2;font-size:11px;letter-spacing:1px" aria-label="Leave to title">LEAVE</button>
       <button class="ctl" id="ub" style="grid-column:2" aria-label="Turn around">↶</button>
       <button class="ctl" id="maptoggle" style="font-size:13px" aria-label="Toggle map">${S.mapOn?"VIEW":"MAP"}</button>
     </div>`;
@@ -1730,6 +1772,27 @@ function showExploreControls(){
   document.getElementById("ub").onclick=()=>{snapLog();S.dir=(S.dir+2)%4;sfx.step();render();};
   document.getElementById("fw").onclick=moveForward;
   document.getElementById("maptoggle").onclick=toggleMap;
+  document.getElementById("leavebtn").onclick=confirmLeave;
+}
+function confirmLeave(){
+  if(S.combat)return;
+  ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">LEAVE THE DESCENT?<small>${S.daily?"daily runs can't be resumed — you'd forfeit this attempt":"your progress is saved — continue anytime from the title"}</small></div>
+    <div id="acts">
+      <button class="act wide" id="leaveyes">LEAVE TO TITLE</button>
+      <button class="act wide" id="leaveno">KEEP PLAYING</button>
+    </div>`;
+  onTap(document.getElementById("leaveyes"),leaveToTitle);
+  onTap(document.getElementById("leaveno"),showExploreControls);
+}
+function leaveToTitle(){
+  if(!S.daily){ saveGame(); try{savedData=JSON.parse(serialize());}catch(e){}
+    const b=document.getElementById("continuebtn");
+    if(b&&savedData){b.textContent="CONTINUE — DEPTH "+S.depth;b.classList.remove("hidden");}
+  }
+  stopMusic();
+  if(typeof refreshTitleMeta==="function")refreshTitleMeta();
+  ["gameover","runend","threshold","chronicle","dailyscreen","lorescreen"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add("hidden");});
+  document.getElementById("intro").classList.remove("hidden");
 }
 function toggleMap(){
   if(S.combat)return;
@@ -2162,6 +2225,7 @@ function startCombat(types){
     });
   }
   S.combat={foes,phase:"pick",order:S.party.filter(p=>p.alive).map(p=>p.id),idx:0,target:0};
+  S.combat.xp0={}; S.party.forEach(p=>{S.combat.xp0[p.id]=p.xp||0;});
   S.chant=0;floaters=[];particles=[];effects=[];shakeT=0;
   S.party.forEach(p=>{p.guard=false;p.cd={};p.stun2=0;});
   // Second Wind boon: restore some HP as battle is joined.
@@ -2632,7 +2696,12 @@ function grantSpoils(){
   // Safety net: credit any unawarded kills (e.g. odd death paths) to whoever last hit them.
   c.foes.forEach(f=>{ if(f.hp<=0&&!f.xpGiven){awardKillXp(f, f.lastHitBy||S.party.find(q=>q.alive)); } });
   S.gold+=gold;S.kills+=c.foes.length;
-  log("Victory! +"+gold+" gold. The slain feed their slayers' strength.","gold");
+  log("Victory! +"+gold+" gold.","gold");
+  const x0=c.xp0||{};
+  const perId={}; S.party.forEach(p=>{perId[p.id]=(p.xp||0)-(x0[p.id]||0);});
+  const gains=S.party.filter(p=>perId[p.id]>0).map(p=>p.name+" <b>+"+perId[p.id]+"</b>");
+  if(gains.length)log("XP earned — "+gains.join(" · "),"arc");
+  if(gains.length)setTimeout(()=>spawnXpFloaters(perId),70);
   checkLevelUp();
 }
 function victoryCombat(){
@@ -2729,8 +2798,8 @@ function checkLevelUp(){
       p.maxhp+=g[0];p.hp=Math.min(p.maxhp,p.hp+g[0]);
       p.maxsp+=g[1];p.sp=Math.min(p.maxsp,p.sp+g[1]);
       p.dmax+=1;p.dmin+=dminUp;
-      sfx.levelup();
-      flashLevelUp();
+      sfx.fanfare();
+      flashLevelUp(p.name,p.lvl);
       const fl=LVL_FLAVOR[p.id][p.lvl%4];
       log("◆ "+p.name+" RISES TO LEVEL "+p.lvl+" (earned with XP) — "+fl+".","good");
       const dmgTxt=dminUp?("+"+1+"–"+2+" damage"):("+1 max damage");
@@ -2747,7 +2816,21 @@ function checkLevelUp(){
     }
   });
 }
-function flashLevelUp(){if(!REDUCE)lvlFlash=18;}
+let lvlFlashText="";
+let lvlFlashLines=[];
+const LVL_FLASH_DUR=96;
+function flashLevelUp(name,lvl){
+  if(REDUCE)return;
+  if(lvlFlash<=0)lvlFlashLines=[];           // start a fresh celebration
+  if(name){
+    const key=name.toUpperCase(), line=key+"  ▸  LEVEL "+lvl;
+    const i=lvlFlashLines.findIndex(l=>l.indexOf(key+"  ▸")===0);
+    if(i>=0)lvlFlashLines[i]=line; else lvlFlashLines.push(line);  // one line per hero, final level
+  }
+  lvlFlashText=name?(name.toUpperCase()+"  ▸  LEVEL "+lvl):"";
+  lvlFlash=LVL_FLASH_DUR;
+  shakeT=Math.max(shakeT||0,10);
+}
 function showBoonPicker(){
   if(!S.boonQueue||!S.boonQueue.length){afterBoons();return;}
   const job=S.boonQueue[0];
