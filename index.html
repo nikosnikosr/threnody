@@ -63,7 +63,7 @@
     border-radius:6px;padding:14px 0;letter-spacing:1px;text-shadow:0 0 6px rgba(255,182,72,.4);touch-action:manipulation}
   button.ctl:active{background:#241d38;border-color:var(--phos)}
   button.ctl:focus-visible{outline:2px solid var(--arc)}
-  #acts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;width:100%}
+  #acts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;width:100%;flex-shrink:0}
   button.act{font-family:inherit;font-size:11px;letter-spacing:1px;color:var(--bone);background:var(--panel);
     border:1px solid #3a2f58;border-radius:6px;padding:11px 4px;touch-action:manipulation}
   button.act small{display:block;color:#7d7490;font-size:9px;margin-top:2px;letter-spacing:0;white-space:normal;line-height:1.35}
@@ -73,13 +73,14 @@
   button.act.flee{border-color:#5a2a2a;color:#d89a94}
   button.act.shop{border-color:#5a4a1a}
   button.act.wide{grid-column:1 / -1}
-  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:10px;min-height:14px;padding:0 14px}
-  #actorline small{display:block;color:#7d7490;letter-spacing:0;font-size:9px;margin-top:2px;white-space:normal;line-height:1.35}
-  .riddle{font-size:12px;line-height:1.6;color:#bdb3cf;text-align:center;padding:0 10px 10px}
-  .sheet{font-size:11px;line-height:1.7;color:#bdb3cf;padding:0 6px 10px;text-align:center}
+  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:12px;min-height:16px;padding:0 14px 3px;flex-shrink:0;overflow:visible}
+  #actorline small{display:block;color:#7d7490;letter-spacing:0;font-size:9px;margin-top:3px;padding-bottom:2px;white-space:normal;line-height:1.5;overflow:visible}
+  .riddle{font-size:12px;line-height:1.6;color:#bdb3cf;text-align:center;padding:0 10px 10px;flex-shrink:0}
+  .sheet{font-size:11px;line-height:1.7;color:#bdb3cf;padding:0 6px 10px;text-align:center;flex-shrink:0}
   .sheet b{color:var(--bone)}
-  .screen{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;padding:32px;z-index:10}
+  .screen{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:safe center;
+    text-align:center;padding:24px 20px;z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .screen>*{flex-shrink:0}
   .screen h2{color:var(--phos);letter-spacing:5px;font-size:19px;margin-bottom:18px;text-shadow:0 0 14px rgba(255,182,72,.6)}
   .screen p{font-size:13px;line-height:1.7;max-width:340px;color:#bdb3cf;margin-bottom:12px}
   .screen p b{color:var(--bone)}
@@ -117,7 +118,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b40</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b42</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -142,18 +143,18 @@
 </div>
 
 <div class="screen hidden" id="gameover">
-  <h2 style="color:var(--blood)">THE PARTY FALLS</h2>
-  <p>The dark closes over them — but Caela's song is not finished. A measure of it still hangs in the air. <b>You may rise once more, or let this descent end.</b></p>
-  <div id="go_rise_box" style="text-align:left;max-width:360px;margin:6px auto 0;border:1px solid #2a2040;border-radius:10px;padding:11px 13px;background:var(--panel)">
-    <div style="color:var(--phos);letter-spacing:2px;font-size:13px;margin-bottom:4px">↑ RISE &amp; PRESS ON</div>
-    <div id="go_rise" style="color:#bcb2d4;font-size:12px;line-height:1.5"></div>
+  <h2 style="color:var(--blood);margin-bottom:8px">THE PARTY FALLS</h2>
+  <p style="margin-bottom:10px;font-size:12px">The dark closes over them — but Caela's song is not finished. <b>Rise once more, or let this descent end.</b></p>
+  <div style="text-align:left;max-width:340px;margin:0 auto;border:1px solid #2a2040;border-radius:10px;padding:9px 12px;background:var(--panel)">
+    <div style="color:var(--phos);letter-spacing:2px;font-size:12px;margin-bottom:3px">↑ RISE &amp; PRESS ON</div>
+    <div id="go_rise" style="color:#bcb2d4;font-size:11px;line-height:1.45"></div>
   </div>
-  <button id="rise">RISE — CONTINUE THIS RUN</button>
-  <div id="go_end_box" style="text-align:left;max-width:360px;margin:14px auto 0;border:1px solid #2a2040;border-radius:10px;padding:11px 13px;background:var(--panel)">
-    <div style="color:var(--violet);letter-spacing:2px;font-size:13px;margin-bottom:4px">✦ LET GO &amp; END THE RUN</div>
-    <div id="go_end" style="color:#bcb2d4;font-size:12px;line-height:1.5"></div>
+  <button id="rise" style="margin-top:10px">RISE — CONTINUE THIS RUN</button>
+  <div style="text-align:left;max-width:340px;margin:12px auto 0;border:1px solid #2a2040;border-radius:10px;padding:9px 12px;background:var(--panel)">
+    <div style="color:var(--violet);letter-spacing:2px;font-size:12px;margin-bottom:3px">✦ LET GO &amp; END THE RUN</div>
+    <div id="go_end" style="color:#bcb2d4;font-size:11px;line-height:1.45"></div>
   </div>
-  <button id="retry" class="alt">END RUN — BANK ECHOES</button>
+  <button id="retry" class="alt" style="margin-top:10px">END RUN — BANK ECHOES</button>
 </div>
 
 <div class="screen hidden" id="runend">
@@ -795,7 +796,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b40";
+const BUILD="b42";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
