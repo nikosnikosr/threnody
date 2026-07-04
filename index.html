@@ -42,6 +42,8 @@
   #musictoggle{position:absolute;top:6px;left:74px;font-size:11px;color:var(--phos-dim);border:1px solid var(--phos-dim);
     background:rgba(0,0,0,.55);border-radius:3px;padding:4px 8px;letter-spacing:1px;z-index:2}
   #musictoggle.off{opacity:.5;text-decoration:line-through}
+  #leavetop{position:absolute;top:6px;right:6px;font-size:11px;color:var(--gold-dim,#7a5520);border:1px solid #7a5520;
+    background:rgba(0,0,0,.55);border-radius:3px;padding:4px 10px;letter-spacing:1px;z-index:2}
   #log{flex:0 0 auto;min-height:58px;max-height:104px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;
     font-size:12px;line-height:1.45;padding:6px 8px;margin-top:6px;border:1px solid #2a2240;border-radius:4px;background:var(--panel)}
   #log::-webkit-scrollbar{width:5px} #log::-webkit-scrollbar-thumb{background:#3a2f58;border-radius:3px}
@@ -49,12 +51,13 @@
   #log .new{color:var(--bone)} #log .old{color:#7d7490}
   #log .dmg{color:var(--blood)} #log .good{color:var(--hp)} #log .arc{color:var(--arc)} #log .gold{color:var(--gold)}
   #party{display:flex;gap:6px;margin-top:6px}
-  .pc{flex:1;border:1px solid #2a2240;border-radius:4px;background:var(--panel);padding:5px 6px;font-size:10px;transition:border-color .15s;position:relative}
-  .xpfloat{position:absolute;top:-4px;left:0;right:0;text-align:center;color:var(--arc);font-size:12px;font-weight:bold;pointer-events:none;text-shadow:0 0 7px rgba(98,168,230,.85);animation:xpup 1.7s ease-out forwards;z-index:6}
-  @keyframes xpup{0%{opacity:0;transform:translateY(10px)}18%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+  .pc{flex:1;border:1px solid #2a2240;border-radius:4px;background:var(--panel);padding:5px 6px;font-size:10px;transition:border-color .15s}
   .pc .nm{color:var(--bone);font-size:11px;letter-spacing:1px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pc.active{border-color:var(--phos);box-shadow:0 0 8px rgba(255,182,72,.3)}
   .pc.dead{opacity:.4} .pc.dead .nm{color:var(--blood)}
+  .pc.danger{border-color:#a03c34;animation:dangerpulse 1.1s ease-in-out infinite}
+  .pc.danger .nm{color:#ff6a5e}
+  @keyframes dangerpulse{0%,100%{box-shadow:0 0 3px rgba(214,69,56,.25)}50%{box-shadow:0 0 12px rgba(214,69,56,.7)}}
   .bar{height:5px;border-radius:2px;background:#241d38;margin:2px 0;overflow:hidden}
   .bar i{display:block;height:100%;border-radius:2px;transition:width .25s}
   .bar.hp i{background:var(--hp)} .bar.sp i{background:var(--sp)}
@@ -107,6 +110,7 @@
     <div id="scan"></div>
     <button id="sndtoggle">SND ON</button>
     <button id="musictoggle">MUSIC</button>
+    <button id="leavetop" aria-label="Leave to title">LEAVE</button>
   </div>
   <div id="log"></div>
   <div id="party"></div>
@@ -120,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b43</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b49</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -285,11 +289,30 @@ const BOSSES=[
    intro:"Thessaly turns, the broken Harp in hand. \"You came all this way to hear how it ends?\"",
    defeat:"Thessaly falls, and the Harp rolls free — its final string still trembling, unbroken."}];
 
+/* ====== REGION ELITE AFFINITY: each region favors two affixes, with local names ====== */
+const REGION_ELITES=[
+  {fav:["gilded","swift"],    names:{gilded:"Gold-Fat",      swift:"Gutter-Quick"}},   // The Cellars
+  {fav:["vampiric","echoing"],names:{vampiric:"Graveworn",   echoing:"Dirge-Sung"}},   // The Crypt
+  {fav:["stony","swift"],     names:{stony:"Chitin-Shelled", swift:"Spore-Quick"}},    // The Fungal Caverns
+  {fav:["vampiric","stony"],  names:{vampiric:"Leech-Ridden",stony:"Barnacled"}},      // The Drowned Halls
+  {fav:["echoing","vicious"], names:{echoing:"Discord-Blessed",vicious:"Court-Cruel"}},// The Abyssal Court
+  {fav:["vicious","gilded"],  names:{vicious:"Cinderborn",   gilded:"Molten-Veined"}}  // The Inferno
+];
+function regionIndex(){return Math.max(0,Math.min(THEMES.length-1,Math.floor((S.depth-1)/5)));}
+/* ============== ELITE AFFIXES: named elites with distinct behaviors ============== */
+const ELITE_AFFIXES=[
+  {id:"vicious",  pre:"Vicious",  warn:"it strikes to kill — savage blows come often"},
+  {id:"stony",    pre:"Stonehide",warn:"blades glance off its hide — it takes far less harm"},
+  {id:"swift",    pre:"Swift",    warn:"it moves twice in a blink — expect paired strikes"},
+  {id:"vampiric", pre:"Vampiric", warn:"every wound it deals feeds it"},
+  {id:"gilded",   pre:"Gilded",   warn:"it drips with stolen gold — cut it down for the purse"},
+  {id:"echoing",  pre:"Echoing",  warn:"the song rings loud in it — worth double the XP"}
+];
 /* ===================== RELICS (rare, build-defining boss drops) ===================== */
 const RELICS=[
   {id:"titanmarrow", name:"TITAN'S MARROW",  desc:"+30 max HP to the whole party",
    f:()=>S.party.forEach(p=>{p.maxhp+=30;p.hp+=30;})},
-  {id:"bloodidol",   name:"BLOODIED IDOL",   desc:"+30% damage, but −10% max HP",
+  {id:"bloodidol",   name:"BLOODIED IDOL",   desc:"every hero hits 30% harder, but loses 10% of their max HP — power paid in blood",
    f:()=>S.party.forEach(p=>{p.dmin=Math.round(p.dmin*1.3);p.dmax=Math.round(p.dmax*1.3);p.maxhp=Math.max(10,Math.round(p.maxhp*0.9));p.hp=Math.min(p.hp,p.maxhp);})},
   {id:"harpstring",  name:"HARPSTRING FRAGMENT", desc:"+8 max SP to all · spend it freely",
    f:()=>S.party.forEach(p=>{p.maxsp+=8;p.sp=p.maxsp;})},
@@ -301,7 +324,7 @@ const RELICS=[
    f:()=>S.party.forEach(p=>{p.berserk=(p.berserk||0)+1;})},
   {id:"thorncrown",  name:"CROWN OF THORNS",  desc:"all heroes reflect melee damage",
    f:()=>S.party.forEach(p=>{p.thorns=(p.thorns||0)+1;})},
-  {id:"echolocket",  name:"ECHO LOCKET",      desc:"+40% Echoes earned from this run",
+  {id:"echolocket",  name:"ECHO LOCKET",      desc:"when this run ends you bank 40% more Echoes — the currency spent at The Threshold on permanent upgrades",
    f:()=>{S.echoBonus=(S.echoBonus||0)+0.4;}}
 ];
 function ownedRelics(){return S.relics||[];}
@@ -469,6 +492,10 @@ const MAXLVL=999;
 
 /* ============================ STATE ============================ */
 let S=null;
+const MAX_POTIONS=5, MAX_ELIXIRS=2;
+function potHeal(){return 20+Math.round(S.depth*2.5);}
+function gainPotions(n){const before=S.potions;S.potions=Math.min(MAX_POTIONS,S.potions+n);return S.potions-before;}
+function gainElixirs(n){const before=S.elixirs;S.elixirs=Math.min(MAX_ELIXIRS,S.elixirs+n);return S.elixirs-before;}
 function newState(){
   return{
     depth:0, x:1, y:1, dir:1,
@@ -798,7 +825,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b43";
+const BUILD="b49";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -865,7 +892,7 @@ function evalAchievements(run){
 function applyMeta(st){
   const v=metaTier("vigor"); if(v)st.party.forEach(p=>{const add=v*8;p.maxhp+=add;p.hp+=add;});
   const f=metaTier("fortune"); if(f)st.gold+=f*45;
-  const pr=metaTier("provision"); if(pr){st.potions+=pr; if(pr>=3)st.elixirs+=1;}
+  const pr=metaTier("provision"); if(pr){st.potions=Math.min(MAX_POTIONS,st.potions+pr); if(pr>=3)st.elixirs=Math.min(MAX_ELIXIRS,st.elixirs+1);}
   const w=metaTier("whetstone"); if(w)st.party.forEach(p=>{p.w.b+=w;});
   const fs=metaTier("foresight");
   if(fs){ st.party.forEach(p=>{p.xp=xpNeeded(p,1+fs);}); checkLevelUpSilently(st); }
@@ -1653,26 +1680,14 @@ function renderHud(){
   document.getElementById("themehud").textContent=theme().n;
   document.getElementById("compass").textContent=DIRNAME[S.dir];
   document.getElementById("goldhud").textContent=S.gold+"g";
-  document.getElementById("pothud").textContent=S.potions+" pot";
-  document.getElementById("elixhud").textContent=S.elixirs+" elix";
-}
-function spawnXpFloaters(perId){
-  if(REDUCE)return;
-  const cards=document.querySelectorAll("#party .pc");
-  S.party.forEach((p,i)=>{
-    const d=perId[p.id]||0; if(d<=0)return;
-    const card=cards[i]; if(!card)return;
-    const f=document.createElement("div");
-    f.className="xpfloat"; f.textContent="+"+d+" XP";
-    card.appendChild(f);
-    setTimeout(()=>{try{f.remove();}catch(e){}},1750);
-  });
+  document.getElementById("pothud").textContent=S.potions+"/"+MAX_POTIONS+" pot";
+  document.getElementById("elixhud").textContent=S.elixirs+"/"+MAX_ELIXIRS+" elix";
 }
 function renderParty(){
   const el=document.getElementById("party");
   const activeId=S.combat&&S.combat.phase==="pick"?S.combat.order[S.combat.idx]:null;
   el.innerHTML=S.party.map(p=>`
-    <div class="pc ${p.alive?'':'dead'} ${p.id===activeId?'active':''}">
+    <div class="pc ${p.alive?'':'dead'} ${p.id===activeId?'active':''} ${p.alive&&p.hp<=p.maxhp*0.25?'danger':''}">
       <div class="nm">${p.name} <span style="color:#7d7490">L${p.lvl}</span></div>
       <div class="bar hp"><i style="width:${100*Math.max(0,p.hp)/p.maxhp}%"></i></div>
       <div class="bar sp"><i style="width:${100*p.sp/p.maxsp}%"></i></div>
@@ -1721,12 +1736,12 @@ function showCharSheet(p){
     ${next?`<br><span style="color:#62a8e6">L${next[0]}: learns ${next[1]}</span>`:""}
   </div>
   <div id="acts">
-    <button class="act" id="cspot" ${S.potions<1||!p.alive||p.hp>=p.maxhp?"disabled":""}>DRINK POTION<small>+20 HP</small></button>
+    <button class="act" id="cspot" ${S.potions<1||!p.alive||p.hp>=p.maxhp?"disabled":""}>DRINK POTION<small>+${potHeal()} HP</small></button>
     <button class="act" id="csback">BACK</button>
   </div>`;
   document.getElementById("cspot").onclick=()=>{
-    S.potions--;p.hp=Math.min(p.maxhp,p.hp+20);
-    sfx.loot();log(p.name+" drinks a potion (+20 HP).","good");
+    S.potions--;const ph=potHeal();p.hp=Math.min(p.maxhp,p.hp+ph);
+    sfx.loot();log(p.name+" drinks a potion (+"+ph+" HP).","good");
     renderHud();renderParty();showCharSheet(p);
   };
   document.getElementById("csback").onclick=()=>{
@@ -1763,7 +1778,6 @@ function showExploreControls(){
       <button class="ctl" id="tl" aria-label="Turn left">↰</button>
       <button class="ctl" id="fw" aria-label="Forward">▲</button>
       <button class="ctl" id="tr" aria-label="Turn right">↱</button>
-      <button class="ctl" id="leavebtn" style="grid-column:1;grid-row:2;font-size:11px;letter-spacing:1px" aria-label="Leave to title">LEAVE</button>
       <button class="ctl" id="ub" style="grid-column:2" aria-label="Turn around">↶</button>
       <button class="ctl" id="maptoggle" style="font-size:13px" aria-label="Toggle map">${S.mapOn?"VIEW":"MAP"}</button>
     </div>`;
@@ -1772,7 +1786,6 @@ function showExploreControls(){
   document.getElementById("ub").onclick=()=>{snapLog();S.dir=(S.dir+2)%4;sfx.step();render();};
   document.getElementById("fw").onclick=moveForward;
   document.getElementById("maptoggle").onclick=toggleMap;
-  document.getElementById("leavebtn").onclick=confirmLeave;
 }
 function confirmLeave(){
   if(S.combat)return;
@@ -1869,8 +1882,7 @@ function onEnterTile(){
       render();showGiveControls();return;
     } else {
       S.gold+=goldFind;
-      const pot=Math.random()<0.6?1:0;
-      if(pot)S.potions++;
+      const pot=Math.random()<0.6?gainPotions(1):0;
       log("A chest: "+goldFind+" gold"+(pot?" and a healing potion":"")+"!","gold");
     }
     saveSoon();
@@ -1980,13 +1992,13 @@ const EVENTS=[
   {t:"You find a forgotten cache of coins in the wall.",
    f:()=>{const g=rnd(15,30)+S.depth*3;S.gold+=g;log("+"+g+" gold!","gold");},cls:"gold"},
   {t:"A cracked vial of elixir, miraculously intact.",
-   f:()=>{S.elixirs++;},cls:"arc"},
+   f:()=>{gainElixirs(1);},cls:"arc"},
   {t:"Ancient training dummies line this hall. You drill for a moment.",
    f:()=>{S.party.forEach(p=>{if(p.alive){p.dmin+=1;p.dmax+=1;}});},cls:"good"},
   {t:"A shrine to the Harp hums. Spell points flood back.",
    f:()=>{S.party.forEach(p=>{p.sp=Math.min(p.maxsp,p.sp+Math.ceil(p.maxsp*0.5));});},cls:"arc"},
   {t:"A pair of potions rest on a dusty altar.",
-   f:()=>{S.potions+=2;},cls:"gold"},
+   f:()=>{gainPotions(2);},cls:"gold"},
   {t:"A cursed mist saps your strength — but steels your resolve.",
    f:()=>{S.party.forEach(p=>{if(p.alive)p.hp=Math.max(1,p.hp-6);});const g=rnd(20,40);S.gold+=g;log("You scavenge "+g+"g from the mist's victims.","gold");},cls:"dmg"}
 ];
@@ -2003,7 +2015,7 @@ const CHOICE_EVENTS=[
    ]},
   {t:"A hooded delver offers a wrapped bundle. \"Forty gold. No refunds in the dark.\"",
    choices:[
-     {label:"BUY THE BUNDLE (40g)",need:s=>s.gold>=40,f:()=>{S.gold-=40;const r=Math.random();if(r<0.4){S.potions+=2;log("Inside: two healing potions. A fair deal.","gold");}else if(r<0.7){S.elixirs+=1;log("Inside: a battle elixir. Lucky.","arc");}else{const t=Math.max(0,depthTier()+1);const slot=Math.random()<0.5?"w":"a";S.pending={item:{slot,name:gearName(slot,t),b:tierBonus(t)},back:"explore"};log("Inside: a "+S.pending.item.name+"!","gold");}}},
+     {label:"BUY THE BUNDLE (40g)",need:s=>s.gold>=40,f:()=>{S.gold-=40;const r=Math.random();if(r<0.4){const g=gainPotions(2);log("Inside: two healing potions"+(g<2?" — your satchel only holds "+MAX_POTIONS:"")+". A fair deal.","gold");}else if(r<0.7){const g=gainElixirs(1);log(g?"Inside: a battle elixir. Lucky.":"Inside: a battle elixir — but you can carry no more.","arc");}else{const t=Math.max(0,depthTier()+1);const slot=Math.random()<0.5?"w":"a";S.pending={item:{slot,name:gearName(slot,t),b:tierBonus(t)},back:"explore"};log("Inside: a "+S.pending.item.name+"!","gold");}}},
      {label:"PASS",f:()=>{log("The figure shrugs and melts back into shadow.","arc");}}
    ]},
   {t:"A crack in the wall hums in tune with the Harp. Something glints inside — just out of easy reach.",
@@ -2124,12 +2136,12 @@ function showGiveControls(){
 /* ============================ SHOP ============================ */
 function showShopControls(page){
   tip("shop");
-  const potP=15+Math.floor(S.depth*1.5),elixP=45+S.depth*2,tonP=20+S.depth,trainP=40+25*S.trains;
+  const potP=15+S.depth*4,elixP=45+S.depth*2,tonP=20+S.depth,trainP=40+25*S.trains;
   if(page==="main"){
     ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ MERCHANT BONES · DEPTH ${S.depth} ⟡<small>permanent upgrades, bought with gold</small></div>
     <div id="acts">
-      <button class="act shop" data-s="pot" ${S.gold<potP?"disabled":""}>POTION · ${potP}g<small>+20 HP, anytime</small></button>
-      <button class="act shop" data-s="elix" ${S.gold<elixP?"disabled":""}>ELIXIR · ${elixP}g<small>heal party ~70%, in battle</small></button>
+      <button class="act shop" data-s="pot" ${S.gold<potP||S.potions>=MAX_POTIONS?"disabled":""}>POTION · ${potP}g<small>${S.potions>=MAX_POTIONS?"satchel full — max "+MAX_POTIONS:"+"+potHeal()+" HP, anytime · carry up to "+MAX_POTIONS}</small></button>
+      <button class="act shop" data-s="elix" ${S.gold<elixP||S.elixirs>=MAX_ELIXIRS?"disabled":""}>ELIXIR · ${elixP}g<small>${S.elixirs>=MAX_ELIXIRS?"satchel full — max "+MAX_ELIXIRS:"heal party ~70%, in battle · carry up to "+MAX_ELIXIRS}</small></button>
       <button class="act shop" data-s="tonic" ${S.gold<tonP?"disabled":""}>SPIRIT TONIC · ${tonP}g<small>restore ~50% SP, all</small></button>
       <button class="act shop" data-s="train" ${S.gold<trainP?"disabled":""}>DRILL · ${trainP}g<small>PERMANENT +3 HP & +2 SP to ALL · bought w/ gold (vs. leveling, earned w/ XP)</small></button>
       <button class="act shop wide" data-s="armory">BROWSE THE ARMORY<small>weapons & armor of depth ${S.depth}</small></button>
@@ -2147,8 +2159,8 @@ function showShopControls(page){
   }
   ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
     const s=b.dataset.s;
-    if(s==="pot"){S.gold-=potP;S.potions++;sfx.coin();log("Bought a healing potion.","gold");showShopControls("main");}
-    else if(s==="elix"){S.gold-=elixP;S.elixirs++;sfx.coin();log("Bought an elixir. Smells like thunderstorms.","gold");showShopControls("main");}
+    if(s==="pot"){if(S.potions>=MAX_POTIONS){showShopControls("main");return;}S.gold-=potP;gainPotions(1);sfx.coin();log("Bought a healing potion.","gold");showShopControls("main");}
+    else if(s==="elix"){if(S.elixirs>=MAX_ELIXIRS){showShopControls("main");return;}S.gold-=elixP;gainElixirs(1);sfx.coin();log("Bought an elixir. Smells like thunderstorms.","gold");showShopControls("main");}
     else if(s==="tonic"){S.gold-=tonP;S.party.forEach(p=>{p.sp=Math.min(p.maxsp,p.sp+Math.ceil(p.maxsp*0.5));});sfx.song();log("The tonic burns going down. Some spell points return.","arc");showShopControls("main");}
     else if(s==="train"){S.gold-=trainP;S.trains++;S.party.forEach(p=>{p.maxhp+=3;p.hp+=3;p.maxsp+=2;p.sp+=2;});sfx.levelup();flashLevelUp();log("Bones drills the party bloody on the stones. <b>+3 max HP, +2 max SP</b> for everyone — bought, not earned.","good");showShopControls("main");}
     else if(s==="armory")showShopControls("armory");
@@ -2216,16 +2228,31 @@ function startCombat(types){
       counts[t]=(counts[t]||0)+1;
       const dup=types.filter(x=>x===t).length>1;
       const elite=S.depth>1&&Math.random()<0.22;
-      if(elite){m.hp=Math.round(m.hp*1.5);m.dmin=Math.round(m.dmin*1.3);m.dmax=Math.round(m.dmax*1.3);
-        m.xp=Math.round(m.xp*1.6);m.gold=Math.round(m.gold*1.6);}
-      return{type:t,name:(elite?"Dread ":"")+m.name+(dup?" "+String.fromCharCode(64+counts[t]):""),
-        hp:m.hp,maxhp:m.hp,dmin:m.dmin,dmax:m.dmax,xp:m.xp,gold:m.gold,boss:false,elite,
+      let aff=null;
+      if(elite){
+        m.hp=Math.round(m.hp*1.5);m.dmin=Math.round(m.dmin*1.25);m.dmax=Math.round(m.dmax*1.25);
+        m.xp=Math.round(m.xp*1.6);m.gold=Math.round(m.gold*1.6);
+        const reg=REGION_ELITES[regionIndex()];
+        if(reg&&Math.random()<0.6){
+          const id=reg.fav[Math.floor(Math.random()*reg.fav.length)];
+          aff=ELITE_AFFIXES.find(a=>a.id===id)||ELITE_AFFIXES[0];
+        } else {
+          aff=ELITE_AFFIXES[Math.floor(Math.random()*ELITE_AFFIXES.length)];
+        }
+        if(aff.id==="gilded"){m.gold=Math.round(m.gold*2.2);m.hp=Math.round(m.hp*0.85);}
+        if(aff.id==="echoing")m.xp=Math.round(m.xp*2.1);
+        if(aff.id==="stony")m.hp=Math.round(m.hp*0.85);
+      }
+      const pre=elite?((REGION_ELITES[regionIndex()].names||{})[aff.id]||aff.pre):"";
+      return{type:t,name:(elite?pre+" ":"")+m.name+(dup?" "+String.fromCharCode(64+counts[t]):""),
+        hp:m.hp,maxhp:m.hp,dmin:m.dmin,dmax:m.dmax,xp:m.xp,gold:m.gold,boss:false,elite,aff:aff?aff.id:null,
         role:MON[t].role||null,shield:0,windup:0,
         flash:0,lunge:0,stun:0,sx:CX,sy:CY,ssc:1};
     });
   }
   S.combat={foes,phase:"pick",order:S.party.filter(p=>p.alive).map(p=>p.id),idx:0,target:0};
   S.combat.xp0={}; S.party.forEach(p=>{S.combat.xp0[p.id]=p.xp||0;});
+  foes.filter(f=>f.aff).forEach(f=>{const a=ELITE_AFFIXES.find(x=>x.id===f.aff);if(a)setTimeout(()=>log("⚠ "+f.name+" — "+a.warn+".","arc"),90);});
   S.chant=0;floaters=[];particles=[];effects=[];shakeT=0;
   S.party.forEach(p=>{p.guard=false;p.cd={};p.stun2=0;});
   // Second Wind boon: restore some HP as battle is joined.
@@ -2292,7 +2319,7 @@ function showCombatControls(){
   ctl.innerHTML=`<div id="actorline">⟡ ${p.name} the ${p.cls} · L${p.lvl} ⟡<small>targeting ${tf?tf.name:"—"}</small></div>
     <div id="acts">${btns}
     <button class="act" data-a="defend">DEFEND<small>halve hits this round, +1 SP</small></button>
-    <button class="act" data-a="potion" ${S.potions<1?"disabled":""}>POTION (${S.potions})<small>+20 HP, weakest ally</small></button>
+    <button class="act" data-a="potion" ${S.potions<1?"disabled":""}>POTION (${S.potions})<small>+${potHeal()} HP, weakest ally</small></button>
     <button class="act" data-a="elixir" ${S.elixirs<1?"disabled":""}>ELIXIR (${S.elixirs})<small>heal party ~70%</small></button>
     ${bossFight?"":`<button class="act flee" data-a="flee">FLEE<small>the whole party runs</small></button>`}
     </div>`;
@@ -2338,6 +2365,7 @@ function awardKillXp(foe,killer){
   });
 }
 function hitFoe(foe,amount,label,cls,crit,pcol){
+  if(foe.aff==="stony"){const cut=Math.round(amount*0.35);if(cut>0){amount=Math.max(1,amount-cut);}}
   foe.flash=8;
   if(foe.shield>0){
     const absorbed=Math.min(foe.shield,amount);
@@ -2441,9 +2469,9 @@ function doAction(p,a){
   } else if(a==="potion"){
     S.potions--;
     const weak=livingParty().sort((x,y)=>(x.hp/x.maxhp)-(y.hp/y.maxhp))[0];
-    weak.hp=Math.min(weak.maxhp,weak.hp+20);
+    const ph=potHeal();weak.hp=Math.min(weak.maxhp,weak.hp+ph);
     sfx.loot();
-    log(p.name+" gives a potion to "+weak.name+" (+20 HP).","good");
+    log(p.name+" gives a potion to "+weak.name+" (+"+ph+" HP).","good");
   } else if(a==="elixir"){
     S.elixirs--;sfx.fanfare();
     S.party.forEach(q=>{if(q.alive)q.hp=Math.min(q.maxhp,q.hp+Math.ceil(q.maxhp*0.7));});
@@ -2666,10 +2694,18 @@ function enemyTurn(){
       else t=Math.random()<0.45?weakestParty():targets[Math.floor(Math.random()*targets.length)];
       d=Math.max(1,d-t.a.b-(t.innate||0));
       let ecrit=false;
-      if(!t.guard&&Math.random()<0.09){d=Math.round(d*1.5);ecrit=true;}
+      const critCh=f.aff==="vicious"?0.30:0.09;
+      if(!t.guard&&Math.random()<critCh){d=Math.round(d*1.5);ecrit=true;}
       if(t.guard)d=Math.max(1,Math.ceil(d/2));
+      if(f.aff==="swift")d=Math.max(1,Math.round(d*0.72));
       t.hp-=d;sfx.hurt();hurtVignette=ecrit?20:14;if(ecrit)shakeT=10;
       log(f.name+" "+verb+" "+t.name+(ecrit?" — a SAVAGE blow!":"")+" — <b>"+d+"</b> dmg.","dmg");
+      if(f.aff==="vampiric"&&f.hp>0){const hl=Math.max(1,Math.round(d*0.6));f.hp=Math.min(f.maxhp,f.hp+hl);log(f.name+" drinks the wound — +"+hl+" HP.","dmg");}
+      if(f.aff==="swift"&&t.alive&&f.hp>0){
+        let d3=Math.max(1,Math.round(rnd(f.dmin,f.dmax)*0.72)-t.a.b-(t.innate||0));
+        if(t.guard)d3=Math.max(1,Math.ceil(d3/2));
+        t.hp-=d3;log(f.name+" strikes AGAIN — <b>"+d3+"</b> dmg.","dmg");
+      }
       if(t.thorns&&f.hp>0){
         const rfl=Math.max(1,Math.round(d*0.25*t.thorns));
         f.hp-=rfl;log("Thornmail bites back — "+f.name+" takes <b>"+rfl+"</b>.","good");
@@ -2701,13 +2737,21 @@ function grantSpoils(){
   const perId={}; S.party.forEach(p=>{perId[p.id]=(p.xp||0)-(x0[p.id]||0);});
   const gains=S.party.filter(p=>perId[p.id]>0).map(p=>p.name+" <b>+"+perId[p.id]+"</b>");
   if(gains.length)log("XP earned — "+gains.join(" · "),"arc");
-  if(gains.length)setTimeout(()=>spawnXpFloaters(perId),70);
   checkLevelUp();
 }
 function victoryCombat(){
   grantSpoils();
   sfx.fanfare();
+  const hadElite=S.combat&&S.combat.foes.some(f=>f.elite);
   endCombat();
+  if(hadElite&&Math.random()<0.45&&!S.pending){
+    const t=Math.max(0,depthTier());
+    const slot=Math.random()<0.6?"w":"a";
+    const item={slot,name:gearName(slot,t),b:tierBonus(t)};
+    log("Among the elite's remains: a <b>"+item.name+" +"+item.b+"</b>.","gold");
+    S.pending={item,back:"explore"};
+    render();showGiveControls();
+  }
 }
 function winBoss(){
   grantSpoils();
@@ -3031,7 +3075,7 @@ let savedData=null;
 function bootFrom(d){
   S=newState();
   Object.assign(S,{depth:d.depth,x:d.x,y:d.y,dir:d.dir,grid:d.grid,bossCell:d.bossCell,
-    shop:d.shop,key:d.key,party:d.party,gold:d.gold,potions:d.potions,elixirs:d.elixirs,
+    shop:d.shop,key:d.key,party:d.party,gold:d.gold,potions:Math.min(MAX_POTIONS,d.potions||0),elixirs:Math.min(MAX_ELIXIRS,d.elixirs||0),
     xp:d.xp,trains:d.trains,steps:d.steps,calm:d.calm,kills:d.kills,deaths:d.deaths,
     rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{},relics:d.relics||[],echoBonus:d.echoBonus||0});
   S.visited=new Set(d.visited);S.trod=new Set(d.trod);S.traps=new Set(d.traps);S.sprung=new Set(d.sprung);
@@ -3062,6 +3106,12 @@ window.addEventListener("pagehide",()=>{try{saveGame();}catch(e){}});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")try{saveGame();}catch(e){}});
 
 /* ============================ TOGGLES & BOOT ============================ */
+document.getElementById("leavetop").onclick=function(){
+  if(!S||!S.grid||S.over)return;
+  if(S.combat){log("Finish the fight first — then you may leave.","arc");return;}
+  if(S.pendingRelic||S.pending)return;
+  confirmLeave();
+};
 document.getElementById("sndtoggle").onclick=function(){
   sndOn=!sndOn;this.textContent=sndOn?"SND ON":"SND OFF";
   if(sndOn){sfx.loot();if(musicOn&&S&&!S.over)startMusic();}else{stopMusic();}
@@ -3271,7 +3321,11 @@ window.addEventListener("keydown",e=>{
 });
 </script>
 <script>
-if("serviceWorker" in navigator && location.protocol==="https:"){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  let _swReloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(_swReloaded)return;_swReloaded=true;location.reload();});
+}
 </script>
 </body>
 </html>
