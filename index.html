@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b49</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b52</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -299,6 +299,15 @@ const REGION_ELITES=[
   {fav:["vicious","gilded"],  names:{vicious:"Cinderborn",   gilded:"Molten-Veined"}}  // The Inferno
 ];
 function regionIndex(){return Math.max(0,Math.min(THEMES.length-1,Math.floor((S.depth-1)/5)));}
+/* ====== REGION TWISTS: one ambient rule per region, announced on arrival ====== */
+const REGION_TWISTS=[
+  {name:"Scavenger's Luck",   line:"the looters missed plenty — +10% gold from every fight here"},
+  {name:"The Restless Dead",  line:"the slain here may claw back up — put them down twice"},
+  {name:"Spore Haze",         line:"each round, the drifting spores may poison a hero"},
+  {name:"Deep Pressure",      line:"every descent here drains 2 SP from each hero"},
+  {name:"An Audience of Knives",line:"foes strike 10% harder — but carry 15% richer purses"},
+  {name:"Ambient Heat",       line:"waves of heat may singe the whole party each round"}
+];
 /* ============== ELITE AFFIXES: named elites with distinct behaviors ============== */
 const ELITE_AFFIXES=[
   {id:"vicious",  pre:"Vicious",  warn:"it strikes to kill — savage blows come often"},
@@ -795,6 +804,7 @@ const TIPS={
   gear:"TIP: New gear? Give it to the hero it helps most — their old piece becomes a hand-me-down you can pass down or sell. Vann wants the best weapon; only Orrin can hold a staff.",
   shop:"TIP: Merchant Bones ($) sells potions, gear, and DRILL training (permanent stats). In the Armory, tap a hero to view their kit before you buy.",
   fountain:"TIP: Glowing springs (≈) restore HP and SP and revive the fallen — but each runs dry after one use. Save them for when you're hurting.",
+  fallen:"TIP: A fallen hero can't fight and earns no XP. Find a glowing spring (≈) to call them back — check the MAP for ≈ you've passed. If ALL heroes fall, the party may rise together (at a price).",
   riddle:"TIP: A rune door (?) asks a riddle. Answer right and it opens; answer wrong and guardians attack. Read carefully — the choices are shuffled.",
   level:"TIP: Win fights to earn XP and level up. Every third level you choose a permanent BOON — pick one that fits your strategy.",
   boss:"TIP: A warden (Ω) guards the stair every 5th floor. Heal up, refill SP, and equip your best gear before you step on it.",
@@ -825,7 +835,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b49";
+const BUILD="b52";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -1149,10 +1159,10 @@ function drawMap(){
   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
     if(!S.visited.has(x+","+y))continue;
     const c=g[y][x],px=ox+x*cs,py=oy+y*cs;
-    if(c==="#"){ctx.fillStyle="#241d38";ctx.fillRect(px,py,cs-1,cs-1);}
+    if(c==="#"){ctx.fillStyle="#2b2342";ctx.fillRect(px,py,cs-1,cs-1);}
     else{
       const walked=S.trod.has(x+","+y);
-      ctx.fillStyle=walked?"#261d46":"#0e0a18";
+      ctx.fillStyle=walked?"#322659":"#15102b";
       ctx.fillRect(px,py,cs-1,cs-1);
       if(walked&&c==="."&&!S.sprung.has(x+","+y)){
         ctx.fillStyle=theme().c+"66";
@@ -1691,7 +1701,7 @@ function renderParty(){
       <div class="nm">${p.name} <span style="color:#7d7490">L${p.lvl}</span></div>
       <div class="bar hp"><i style="width:${100*Math.max(0,p.hp)/p.maxhp}%"></i></div>
       <div class="bar sp"><i style="width:${100*p.sp/p.maxsp}%"></i></div>
-      <div class="num"><span>HP ${Math.max(0,p.hp)}${p.poison>0?' <b style="color:#7be08a">PSN</b>':''}${p.burn>0?' <b style="color:#ff9a48">BRN</b>':''}${p.guard?' <b style="color:#62a8e6">GRD</b>':''}</span><span>SP ${p.sp}</span></div>
+      <div class="num">${p.alive?`<span>HP ${Math.max(0,p.hp)}${p.poison>0?' <b style="color:#7be08a">PSN</b>':''}${p.burn>0?' <b style="color:#ff9a48">BRN</b>':''}${p.guard?' <b style="color:#62a8e6">GRD</b>':''}</span><span>SP ${p.sp}</span>`:`<span style="color:var(--blood)">FALLEN — spring ≈ revives</span>`}</div>
     </div>`).join("");
   if(!S.combat&&!S.over){
     el.querySelectorAll(".pc").forEach((d,i)=>d.onclick=()=>showCharSheet(S.party[i]));
@@ -1773,6 +1783,7 @@ function onTap(el,fn){
 }
 
 function showExploreControls(){
+  if(S.party.some(p=>!p.alive))tip("fallen");
   ctl.innerHTML=`
     <div id="dpad">
       <button class="ctl" id="tl" aria-label="Turn left">↰</button>
@@ -1819,6 +1830,16 @@ function markVisited(){
   S.visited.add(S.x+","+S.y);
   for(const[dx,dy]of[[0,-1],[1,0],[0,1],[-1,0],[1,-1],[-1,-1],[1,1],[-1,1]])
     S.visited.add((S.x+dx)+","+(S.y+dy));
+  // You can see down the corridor you face — the map should agree with your eyes.
+  const[fx,fy]=fwd(),[rx,ry]=rightv();
+  let cx2=S.x,cy2=S.y;
+  for(let i=0;i<5;i++){
+    cx2+=fx;cy2+=fy;
+    if(cell(cx2,cy2)==="#"){S.visited.add(cx2+","+cy2);break;}  // the far wall is seen too
+    S.visited.add(cx2+","+cy2);
+    S.visited.add((cx2+rx)+","+(cy2+ry));                        // corridor walls / side openings
+    S.visited.add((cx2-rx)+","+(cy2-ry));
+  }
 }
 function stepBob(){if(!REDUCE)bobT=6;}
 function moveForward(){
@@ -1980,6 +2001,10 @@ function descend(){
     else if(S.depth%5===0)log("DEPTH "+S.depth+" — "+theme().n+". A floor-warden bars the stair below. (boss floor)","dmg");
     else log("DEPTH "+S.depth+" — "+theme().n+". The Harp's note bends, fainter, further down…","arc");
   }
+  {const ri=regionIndex();
+   if((S.depth-1)%5===0){const tw=REGION_TWISTS[ri];if(tw)log("⟡ "+theme().n.toUpperCase()+" · "+tw.name+" — "+tw.line+".","arc");}
+   if(ri===3){let dr=false;S.party.forEach(p=>{if(p.alive&&p.sp>0){p.sp=Math.max(0,p.sp-2);dr=true;}});
+     if(dr)log("The drowned deep drinks your spirit — every hero loses 2 SP.","arc");}}
   pruneFloors();
   sfx.door();
   if(Math.random()<0.3&&!S.floors[S.depth]){descentEvent();saveGame();return;}
@@ -2227,6 +2252,7 @@ function startCombat(types){
       const m=scaleM(t);
       counts[t]=(counts[t]||0)+1;
       const dup=types.filter(x=>x===t).length>1;
+      if(regionIndex()===4){m.dmin=Math.round(m.dmin*1.1);m.dmax=Math.round(m.dmax*1.1);m.gold=Math.round(m.gold*1.15);}
       const elite=S.depth>1&&Math.random()<0.22;
       let aff=null;
       if(elite){
@@ -2389,6 +2415,13 @@ function hitFoe(foe,amount,label,cls,crit,pcol){
   addFloater(foe.sx,foe.sy-50*foe.ssc,(crit?"✦":"")+amount,crit?"#ffd23f":"#e9dfc8");
   spawnParticles(foe.sx,foe.sy,pcol||"#ffb648",crit?14:8);
   log(label+(crit?" — <b>CRITICAL!</b>":"")+" — <b>"+amount+"</b> dmg to "+foe.name+(foe.hp<=0?". Destroyed!":"."),cls||"");
+  if(foe.hp<=0&&!foe.boss&&S.combat&&!S.combat.roseUsed&&regionIndex()===1&&Math.random()<0.3){
+    S.combat.roseUsed=true;
+    foe.hp=Math.max(1,Math.round(foe.maxhp*0.45));
+    foe.xp=Math.round((foe.xp||0)*0.5);foe.xpGiven=false;foe.flash=10;
+    log(foe.name+" claws back upright — the Crypt does not keep its dead!","dmg");
+    sfx.doom();
+  }
   return foe.hp<=0&&foe.boss;
 }
 function missFoe(foe,who){
@@ -2541,6 +2574,16 @@ function enemyTurn(){
         sfx.doom();
       }
       S.party.forEach(q=>{if(q.cd)for(const k in q.cd)if(q.cd[k]>0)q.cd[k]--;});
+      {const ri=regionIndex();
+       if(ri===2&&Math.random()<0.2){
+         const alive=livingParty();
+         if(alive.length){const t=alive[rnd(0,alive.length-1)];t.poison=Math.max(t.poison||0,2);
+           log("Spore haze coils around "+t.name+" — <b>poisoned!</b>","dmg");renderParty();}}
+       if(ri===5&&Math.random()<0.25){
+         const burn=2+Math.round(S.depth*0.12);
+         livingParty().forEach(t=>{t.hp=Math.max(1,t.hp-burn);});
+         log("A wave of heat washes over the party — <b>"+burn+"</b> dmg to all.","dmg");
+         hurtVignette=10;renderParty();}}
       c.phase="pick";c.idx=-1;nextActor();return;
     }
     const f=foes[i++];
@@ -2729,6 +2772,7 @@ function grantSpoils(){
   const c=S.combat;
   let gold=0;
   c.foes.forEach(f=>{gold+=f.gold;});
+  if(regionIndex()===0)gold=Math.round(gold*1.1);
   // Safety net: credit any unawarded kills (e.g. odd death paths) to whoever last hit them.
   c.foes.forEach(f=>{ if(f.hp<=0&&!f.xpGiven){awardKillXp(f, f.lastHitBy||S.party.find(q=>q.alive)); } });
   S.gold+=gold;S.kills+=c.foes.length;
@@ -2742,6 +2786,11 @@ function grantSpoils(){
 function victoryCombat(){
   grantSpoils();
   sfx.fanfare();
+  const down=S.party.filter(p=>!p.alive);
+  if(down.length){
+    log(down.map(p=>p.name).join(" and ")+" lie"+(down.length>1?"":"s")+" senseless — <b>seek a glowing spring (≈)</b> to call the fallen back.","arc");
+    tip("fallen");
+  }
   const hadElite=S.combat&&S.combat.foes.some(f=>f.elite);
   endCombat();
   if(hadElite&&Math.random()<0.45&&!S.pending){
