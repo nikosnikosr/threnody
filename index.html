@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b52</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b56</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -331,7 +331,7 @@ const RELICS=[
    f:()=>S.party.forEach(p=>{p.lifesteal=(p.lifesteal||0)+1;})},
   {id:"berserkbrand",name:"BERSERKER'S BRAND",desc:"all heroes rage when below half HP",
    f:()=>S.party.forEach(p=>{p.berserk=(p.berserk||0)+1;})},
-  {id:"thorncrown",  name:"CROWN OF THORNS",  desc:"all heroes reflect melee damage",
+  {id:"thorncrown",  name:"CROWN OF THORNS",  desc:"foes that strike any hero take back 25% of the damage they deal (stacks with Thornmail)",
    f:()=>S.party.forEach(p=>{p.thorns=(p.thorns||0)+1;})},
   {id:"echolocket",  name:"ECHO LOCKET",      desc:"when this run ends you bank 40% more Echoes — the currency spent at The Threshold on permanent upgrades",
    f:()=>{S.echoBonus=(S.echoBonus||0)+0.4;}}
@@ -492,9 +492,9 @@ const SKILL_DESC={
   "Disintegrate":"10 SP · massive damage to a single foe."
 };
 function xpForLevel(l){return Math.max(0,Math.round(50*(l-1)*(l-1)-13*(l-1)));}
-// Per-character leveling pace. Caela the Songweaver rarely lands the killing blow,
-// so she rises on less XP than the rest of the party.
-const XP_RATE={lyra:0.7};
+// Per-character leveling pace, tuned so killers lead slightly and no one is stranded:
+// Caela (support, few kills) 0.85 · Vann (tank — misses, rarely finishes) 0.9 · Orrin (kill-stealer) 1.0
+const XP_RATE={lyra:0.85,brom:0.9};
 function xpRate(p){return (p&&XP_RATE[p.id])||1;}
 function xpNeeded(p,l){return Math.round(xpForLevel(l)*xpRate(p));}
 const MAXLVL=999;
@@ -503,6 +503,7 @@ const MAXLVL=999;
 let S=null;
 const MAX_POTIONS=5, MAX_ELIXIRS=2;
 function potHeal(){return 20+Math.round(S.depth*2.5);}
+function potHealFor(p){return Math.max(potHeal(),Math.round(p.maxhp*0.30));}
 function gainPotions(n){const before=S.potions;S.potions=Math.min(MAX_POTIONS,S.potions+n);return S.potions-before;}
 function gainElixirs(n){const before=S.elixirs;S.elixirs=Math.min(MAX_ELIXIRS,S.elixirs+n);return S.elixirs-before;}
 function newState(){
@@ -835,7 +836,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b52";
+const BUILD="b56";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -1159,14 +1160,18 @@ function drawMap(){
   for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){
     if(!S.visited.has(x+","+y))continue;
     const c=g[y][x],px=ox+x*cs,py=oy+y*cs;
-    if(c==="#"){ctx.fillStyle="#2b2342";ctx.fillRect(px,py,cs-1,cs-1);}
+    if(c==="#"){ctx.fillStyle="#7a6bb0";ctx.fillRect(px,py,cs-1,cs-1);}
     else{
       const walked=S.trod.has(x+","+y);
-      ctx.fillStyle=walked?"#322659":"#15102b";
+      // Colorblind-safe: walls LIGHT, floor DARK — big luminance gap, not a hue gap.
+      ctx.fillStyle=walked?"#1d1633":"#100c1e";
       ctx.fillRect(px,py,cs-1,cs-1);
-      if(walked&&c==="."&&!S.sprung.has(x+","+y)){
-        ctx.fillStyle=theme().c+"66";
-        ctx.fillRect(px+cs/2-1.5,py+cs/2-1.5,3,3);
+      const GLYPH="CKF><DRMB".includes(c);
+      if(walked&&!GLYPH){
+        // Bright solid dot on EVERY walked cell (events, sprung traps included).
+        ctx.fillStyle="#ffd9a0";
+        const r=Math.max(1.6,cs*0.14);
+        ctx.beginPath();ctx.arc(px+cs/2,py+cs/2,r,0,Math.PI*2);ctx.fill();
       }
       ctx.font=(cs*0.7)+"px monospace";ctx.textAlign="center";ctx.textBaseline="middle";
       const mx=px+cs/2,my=py+cs/2;
@@ -1746,11 +1751,11 @@ function showCharSheet(p){
     ${next?`<br><span style="color:#62a8e6">L${next[0]}: learns ${next[1]}</span>`:""}
   </div>
   <div id="acts">
-    <button class="act" id="cspot" ${S.potions<1||!p.alive||p.hp>=p.maxhp?"disabled":""}>DRINK POTION<small>+${potHeal()} HP</small></button>
+    <button class="act" id="cspot" ${S.potions<1||!p.alive||p.hp>=p.maxhp?"disabled":""}>DRINK POTION<small>+${potHealFor(p)} HP (30% of max)</small></button>
     <button class="act" id="csback">BACK</button>
   </div>`;
   document.getElementById("cspot").onclick=()=>{
-    S.potions--;const ph=potHeal();p.hp=Math.min(p.maxhp,p.hp+ph);
+    S.potions--;const ph=potHealFor(p);p.hp=Math.min(p.maxhp,p.hp+ph);
     sfx.loot();log(p.name+" drinks a potion (+"+ph+" HP).","good");
     renderHud();renderParty();showCharSheet(p);
   };
@@ -2165,7 +2170,7 @@ function showShopControls(page){
   if(page==="main"){
     ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">⟡ MERCHANT BONES · DEPTH ${S.depth} ⟡<small>permanent upgrades, bought with gold</small></div>
     <div id="acts">
-      <button class="act shop" data-s="pot" ${S.gold<potP||S.potions>=MAX_POTIONS?"disabled":""}>POTION · ${potP}g<small>${S.potions>=MAX_POTIONS?"satchel full — max "+MAX_POTIONS:"+"+potHeal()+" HP, anytime · carry up to "+MAX_POTIONS}</small></button>
+      <button class="act shop" data-s="pot" ${S.gold<potP||S.potions>=MAX_POTIONS?"disabled":""}>POTION · ${potP}g<small>${S.potions>=MAX_POTIONS?"satchel full — max "+MAX_POTIONS:"heals 30% of max HP (min +"+potHeal()+") · carry up to "+MAX_POTIONS}</small></button>
       <button class="act shop" data-s="elix" ${S.gold<elixP||S.elixirs>=MAX_ELIXIRS?"disabled":""}>ELIXIR · ${elixP}g<small>${S.elixirs>=MAX_ELIXIRS?"satchel full — max "+MAX_ELIXIRS:"heal party ~70%, in battle · carry up to "+MAX_ELIXIRS}</small></button>
       <button class="act shop" data-s="tonic" ${S.gold<tonP?"disabled":""}>SPIRIT TONIC · ${tonP}g<small>restore ~50% SP, all</small></button>
       <button class="act shop" data-s="train" ${S.gold<trainP?"disabled":""}>DRILL · ${trainP}g<small>PERMANENT +3 HP & +2 SP to ALL · bought w/ gold (vs. leveling, earned w/ XP)</small></button>
@@ -2321,33 +2326,38 @@ function showCombatControls(){
   if(!p||!p.alive){nextActor();return;}
   const tf=targetFoe();
   if(S.party.some(q=>q.alive&&q.hp<q.maxhp*0.4))tip("defend");
-  let btns="";
+  // FIXED ACTION SLOTS — the same number always means the same thing:
+  // [1] STRIKE · [2] signature skill · [3] DEFEND · [4] POTION · [5] ELIXIR · [6] FLEE · [7+] advanced skills
+  const strikeBtn=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>`;
+  let sigBtn="", extras="";
   if(p.id==="brom"){
-    btns=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>`;
-    if(p.lvl>=3){const cdC=(p.cd&&p.cd.cleave)||0;btns+=`<button class="act" data-a="cleave" ${p.sp<3||cdC>0?"disabled":""}>CLEAVE · 3 SP<small>${cdC>0?"recovering — ready next turn":"80% dmg to two foes · then 1-turn cooldown"}</small></button>`;}
-    if(p.lvl>=7)btns+=`<button class="act" data-a="whirl" ${p.sp<6?"disabled":""}>WHIRLWIND · 6 SP<small>70% dmg to ALL foes</small></button>`;
-    if(p.lvl>=12)btns+=`<button class="act" data-a="berserk" ${p.sp<8?"disabled":""}>BERSERK · 8 SP<small>strike twice at full power</small></button>`;
+    if(p.lvl>=3){const cdC=(p.cd&&p.cd.cleave)||0;sigBtn=`<button class="act" data-a="cleave" ${p.sp<3||cdC>0?"disabled":""}>CLEAVE · 3 SP<small>${cdC>0?"recovering — ready next turn":"80% dmg to two foes · then 1-turn cooldown"}</small></button>`;}
+    else sigBtn=`<button class="act" disabled>CLEAVE<small>learned at level 3</small></button>`;
+    if(p.lvl>=7)extras+=`<button class="act" data-a="whirl" ${p.sp<6?"disabled":""}>WHIRLWIND · 6 SP<small>70% dmg to ALL foes</small></button>`;
+    if(p.lvl>=12)extras+=`<button class="act" data-a="berserk" ${p.sp<8?"disabled":""}>BERSERK · 8 SP<small>strike twice at full power</small></button>`;
   } else if(p.id==="lyra"){
-    btns=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>
-          <button class="act" data-a="mend" ${p.sp<7||((p.cd&&p.cd.mend)||0)>0?"disabled":""}>SONG OF MENDING · 7 SP<small>${((p.cd&&p.cd.mend)||0)>0?"the song must rest — ready next turn":"heal party "+(8+Math.floor(p.lvl*0.8))+"–"+(13+Math.floor(p.lvl*0.8))+" · then 1-turn cooldown"}</small></button>`;
-    if(p.lvl>=4)btns+=`<button class="act" data-a="chant" ${p.sp<3||S.chant?"disabled":""}>WAR CHANT · 3 SP<small>party +${3+Math.floor(p.lvl/4)} dmg this fight</small></button>`;
-    if(p.lvl>=8)btns+=`<button class="act" data-a="lullaby" ${p.sp<6?"disabled":""}>LULLABY · 6 SP<small>50% to stun each foe</small></button>`;
+    sigBtn=`<button class="act" data-a="mend" ${p.sp<7||((p.cd&&p.cd.mend)||0)>0?"disabled":""}>SONG OF MENDING · 7 SP<small>${((p.cd&&p.cd.mend)||0)>0?"the song must rest — ready next turn":"heal party "+(8+Math.floor(p.lvl*0.8))+"–"+(13+Math.floor(p.lvl*0.8))+" · then 1-turn cooldown"}</small></button>`;
+    if(p.lvl>=4)extras+=`<button class="act" data-a="chant" ${p.sp<3||S.chant?"disabled":""}>WAR CHANT · 3 SP<small>party +${3+Math.floor(p.lvl/4)} dmg this fight</small></button>`;
+    if(p.lvl>=8)extras+=`<button class="act" data-a="lullaby" ${p.sp<6?"disabled":""}>LULLABY · 6 SP<small>50% to stun each foe</small></button>`;
   } else {
     const sb=spow(p);
-    btns=`<button class="act" data-a="attack">STRIKE<small>${p.dmin+p.w.b}–${p.dmax+p.w.b} dmg</small></button>
-          <button class="act" data-a="missile" ${p.sp<3?"disabled":""}>MAGIC MISSILE · 3 SP<small>${9+p.lvl+sb}–${15+p.lvl+sb}, never misses</small></button>`;
-    if(p.lvl>=5)btns+=`<button class="act" data-a="burst" ${p.sp<6?"disabled":""}>FLAME BURST · 6 SP<small>${7+Math.floor(p.lvl/2)+Math.floor(sb/2)}–${11+Math.floor(p.lvl/2)+Math.floor(sb/2)} to ALL foes</small></button>`;
-    if(p.lvl>=9)btns+=`<button class="act" data-a="ice" ${p.sp<9?"disabled":""}>ICE STORM · 9 SP<small>ALL foes + 35% stun</small></button>`;
-    if(p.lvl>=11)btns+=`<button class="act" data-a="surge" ${p.sp<7?"disabled":""}>ARCANE SURGE · 7 SP<small>${Math.round((18+sb*2.2))}+ to one foe (scales w/ staff)</small></button>`;
-    if(p.lvl>=13)btns+=`<button class="act" data-a="disint" ${p.sp<10?"disabled":""}>DISINTEGRATE · 10 SP<small>${28+p.lvl+sb}–${40+p.lvl+sb} to one foe</small></button>`;
+    sigBtn=`<button class="act" data-a="missile" ${p.sp<3?"disabled":""}>MAGIC MISSILE · 3 SP<small>${9+p.lvl+sb}–${15+p.lvl+sb}, never misses</small></button>`;
+    if(p.lvl>=5)extras+=`<button class="act" data-a="burst" ${p.sp<6?"disabled":""}>FLAME BURST · 6 SP<small>${7+Math.floor(p.lvl/2)+Math.floor(sb/2)}–${11+Math.floor(p.lvl/2)+Math.floor(sb/2)} to ALL foes</small></button>`;
+    if(p.lvl>=9)extras+=`<button class="act" data-a="ice" ${p.sp<9?"disabled":""}>ICE STORM · 9 SP<small>ALL foes + 35% stun</small></button>`;
+    if(p.lvl>=11)extras+=`<button class="act" data-a="surge" ${p.sp<7?"disabled":""}>ARCANE SURGE · 7 SP<small>${Math.round((18+sb*2.2))}+ to one foe (scales w/ staff)</small></button>`;
+    if(p.lvl>=13)extras+=`<button class="act" data-a="disint" ${p.sp<10?"disabled":""}>DISINTEGRATE · 10 SP<small>${28+p.lvl+sb}–${40+p.lvl+sb} to one foe</small></button>`;
   }
   const bossFight=c.foes.some(f=>f.boss);
+  const fleeBtn=bossFight
+    ?`<button class="act flee" disabled>FLEE<small>no escape from a warden</small></button>`
+    :`<button class="act flee" data-a="flee">FLEE<small>the whole party runs</small></button>`;
   ctl.innerHTML=`<div id="actorline">⟡ ${p.name} the ${p.cls} · L${p.lvl} ⟡<small>targeting ${tf?tf.name:"—"}</small></div>
-    <div id="acts">${btns}
+    <div id="acts">${strikeBtn}${sigBtn}
     <button class="act" data-a="defend">DEFEND<small>halve hits this round, +1 SP</small></button>
-    <button class="act" data-a="potion" ${S.potions<1?"disabled":""}>POTION (${S.potions})<small>+${potHeal()} HP, weakest ally</small></button>
+    <button class="act" data-a="potion" ${S.potions<1?"disabled":""}>POTION (${S.potions})<small>heals weakest ally 30% of max HP</small></button>
     <button class="act" data-a="elixir" ${S.elixirs<1?"disabled":""}>ELIXIR (${S.elixirs})<small>heal party ~70%</small></button>
-    ${bossFight?"":`<button class="act flee" data-a="flee">FLEE<small>the whole party runs</small></button>`}
+    ${fleeBtn}
+    ${extras}
     </div>`;
   ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>doAction(p,b.dataset.a)));
   numberActs();
@@ -2502,7 +2512,7 @@ function doAction(p,a){
   } else if(a==="potion"){
     S.potions--;
     const weak=livingParty().sort((x,y)=>(x.hp/x.maxhp)-(y.hp/y.maxhp))[0];
-    const ph=potHeal();weak.hp=Math.min(weak.maxhp,weak.hp+ph);
+    const ph=potHealFor(weak);weak.hp=Math.min(weak.maxhp,weak.hp+ph);
     sfx.loot();
     log(p.name+" gives a potion to "+weak.name+" (+"+ph+" HP).","good");
   } else if(a==="elixir"){
@@ -2547,6 +2557,8 @@ function enemyTurn(){
   let i=0;
   function step(){
     if(!S.combat)return;
+    // Victory can happen mid-enemy-turn (Thornmail reflections, burns) — never strand the fight.
+    if(foes.every(f=>f.hp<=0)){setTimeout(victoryCombat,350);return;}
     if(i>=foes.length){
       S.party.forEach(t=>{
         if(!t.alive)return;
@@ -2584,6 +2596,7 @@ function enemyTurn(){
          livingParty().forEach(t=>{t.hp=Math.max(1,t.hp-burn);});
          log("A wave of heat washes over the party — <b>"+burn+"</b> dmg to all.","dmg");
          hurtVignette=10;renderParty();}}
+      if(foes.every(f=>f.hp<=0)){setTimeout(victoryCombat,350);return;}
       c.phase="pick";c.idx=-1;nextActor();return;
     }
     const f=foes[i++];
@@ -2856,7 +2869,7 @@ const BOONS=[
   {n:"Greater Stoneskin",d:"+4 innate armor",          t:1,f:p=>{p.innate=(p.innate||0)+4;}},
   {n:"Berserker",     d:"big damage while below ½ HP", t:1,f:p=>{p.berserk=(p.berserk||0)+1;}},
   {n:"Second Wind",   d:"heal 20% HP at each fight's start",t:1,f:p=>{p.secondwind=(p.secondwind||0)+1;}},
-  {n:"Thornmail",     d:"reflect 25% of melee taken",  t:1,f:p=>{p.thorns=(p.thorns||0)+1;}},
+  {n:"Thornmail",     d:"when a foe strikes you, it takes back 25% of the damage it dealt",  t:1,f:p=>{p.thorns=(p.thorns||0)+1;}},
   // —— mythic (level 25+) ——
   {n:"Immortal",      d:"+100 max HP",                 t:2,f:p=>{p.maxhp+=100;p.hp+=100;}},
   {n:"Archmage",      d:"+6 spell power",              t:2,f:p=>{p.spbonus=(p.spbonus||0)+6;}},
