@@ -19,17 +19,17 @@
     --hp:#6fe06f; --sp:#62a8e6;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-  html,body{height:100%;overscroll-behavior:none}
+  html,body{height:100dvh;overflow:hidden;overscroll-behavior:none}
   body{background:var(--ink);color:var(--bone);font-family:ui-monospace,Menlo,Monaco,"Cascadia Mono",monospace;
     display:flex;flex-direction:column;align-items:center;height:100vh;height:100svh;overflow:hidden;touch-action:manipulation}
-  #app{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 8px calc(env(safe-area-inset-bottom) + 6px)}
+  #app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 8px calc(env(safe-area-inset-bottom) + 6px);overflow:hidden}
   header{display:flex;justify-content:space-between;align-items:baseline;padding:6px 2px 4px}
   header h1{font-size:12px;letter-spacing:2px;color:var(--phos);font-weight:700;text-shadow:0 0 8px rgba(255,182,72,.5)}
   #hud{font-size:10px;color:var(--phos-dim);letter-spacing:1px;text-align:right}
   #hud b{color:var(--phos)}
   #viewwrap{position:relative;width:100%;border:1px solid var(--phos-dim);border-radius:4px;background:#000;
     box-shadow:0 0 22px rgba(255,182,72,.12), inset 0 0 40px rgba(0,0,0,.8)}
-  canvas{display:block;width:100%;height:auto}
+  canvas{display:block;width:auto;height:auto;max-width:100%;max-height:33dvh;margin:0 auto}
   #scan{position:absolute;inset:0;pointer-events:none;border-radius:4px;
     background:repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0px, rgba(0,0,0,.20) 1px, transparent 2px, transparent 4px);
     mix-blend-mode:multiply}
@@ -44,7 +44,7 @@
   #musictoggle.off{opacity:.5;text-decoration:line-through}
   #leavetop{position:absolute;top:6px;right:6px;font-size:11px;color:var(--gold-dim,#7a5520);border:1px solid #7a5520;
     background:rgba(0,0,0,.55);border-radius:3px;padding:4px 10px;letter-spacing:1px;z-index:2}
-  #log{flex:0 0 auto;min-height:58px;max-height:104px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;
+  #log{flex:0 0 auto;min-height:52px;max-height:12dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;
     font-size:12px;line-height:1.45;padding:6px 8px;margin-top:6px;border:1px solid #2a2240;border-radius:4px;background:var(--panel)}
   #log::-webkit-scrollbar{width:5px} #log::-webkit-scrollbar-thumb{background:#3a2f58;border-radius:3px}
   #log div{flex:0 0 auto}
@@ -62,15 +62,15 @@
   .bar i{display:block;height:100%;border-radius:2px;transition:width .25s}
   .bar.hp i{background:var(--hp)} .bar.sp i{background:var(--sp)}
   .pc .num{color:#7d7490;font-size:9px;display:flex;justify-content:space-between}
-  #controls{flex:1;display:flex;flex-direction:column;justify-content:flex-start;padding:8px 0 16px;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #controls{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-start;padding:6px 0 8px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
   #dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:280px;margin:0 auto;width:100%}
   button.ctl{font-family:inherit;font-size:20px;color:var(--phos);background:var(--panel);border:1px solid var(--phos-dim);
     border-radius:6px;padding:14px 0;letter-spacing:1px;text-shadow:0 0 6px rgba(255,182,72,.4);touch-action:manipulation}
   button.ctl:active{background:#241d38;border-color:var(--phos)}
   button.ctl:focus-visible{outline:2px solid var(--arc)}
-  #acts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;width:100%;flex-shrink:0}
+  #acts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;flex-shrink:0}
   button.act{font-family:inherit;font-size:11px;letter-spacing:1px;color:var(--bone);background:var(--panel);
-    border:1px solid #3a2f58;border-radius:6px;padding:11px 4px;touch-action:manipulation}
+    border:1px solid #3a2f58;border-radius:6px;padding:8px 4px;touch-action:manipulation}
   button.act small{display:block;color:#7d7490;font-size:9px;margin-top:2px;letter-spacing:0;white-space:normal;line-height:1.35}
   button.act:active{background:#241d38;border-color:var(--phos)}
   button.act:disabled{opacity:.35}
@@ -78,7 +78,7 @@
   button.act.flee{border-color:#5a2a2a;color:#d89a94}
   button.act.shop{border-color:#5a4a1a}
   button.act.wide{grid-column:1 / -1}
-  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:12px;min-height:16px;padding:0 14px 3px;flex-shrink:0;overflow:visible}
+  #actorline{text-align:center;font-size:11px;letter-spacing:2px;color:var(--phos);margin-bottom:8px;min-height:16px;padding:0 14px 3px;flex-shrink:0;overflow:visible}
   #actorline small{display:block;color:#7d7490;letter-spacing:0;font-size:9px;margin-top:3px;padding-bottom:2px;white-space:normal;line-height:1.5;overflow:visible}
   .riddle{font-size:12px;line-height:1.6;color:#bdb3cf;text-align:center;padding:0 10px 10px;flex-shrink:0}
   .sheet{font-size:11px;line-height:1.7;color:#bdb3cf;padding:0 6px 10px;text-align:center;flex-shrink:0}
@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b56</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b58</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -132,7 +132,6 @@
   </div>
   <button id="continuebtn" class="hidden">CONTINUE</button>
   <button id="begin" class="">DESCEND ANEW</button>
-  <button id="titlethreshold" class="alt">✦ THE THRESHOLD ✦</button>
   <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
     <button id="titledaily" class="alt" style="margin-top:0">◆ DAILY</button>
     <button id="titlechronicle" class="alt" style="margin-top:0">CHRONICLE</button>
@@ -160,7 +159,7 @@
     <div style="color:var(--violet);letter-spacing:2px;font-size:12px;margin-bottom:3px">✦ LET GO &amp; END THE RUN</div>
     <div id="go_end" style="color:#bcb2d4;font-size:11px;line-height:1.45"></div>
   </div>
-  <button id="retry" class="alt" style="margin-top:10px">END RUN — BANK ECHOES</button>
+  <button id="retry" class="alt" style="margin-top:10px">END RUN</button>
 </div>
 
 <div class="screen hidden" id="runend">
@@ -169,17 +168,7 @@
   <p id="rstats"></p>
   <p id="rgrade" style="color:var(--gold);letter-spacing:3px;font-size:14px"></p>
   <p id="rechoes" style="font-size:12px;margin-top:4px"></p>
-  <button id="tothreshold">✦ THE THRESHOLD ✦</button>
   <button id="again" class="alt">NEW DESCENT</button>
-</div>
-
-<div class="screen hidden" id="threshold">
-  <div class="rune">— BETWEEN LIVES —</div>
-  <h2 style="color:#b88cff;text-shadow:0 0 14px rgba(184,140,255,.6)">THE THRESHOLD</h2>
-  <p style="color:#bdb3cf;font-size:12px;margin-bottom:4px">The fallen leave <b style="color:#b88cff">Echoes</b> in the deep. Spend them here — every purchase strengthens <i>all</i> future descents.</p>
-  <p id="th_balance" style="color:#b88cff;letter-spacing:2px;font-size:14px;margin-bottom:10px"></p>
-  <div id="th_list" style="width:100%;max-width:340px;text-align:left"></div>
-  <button id="th_back">◂ BACK</button>
 </div>
 
 <div class="screen hidden" id="dailyscreen">
@@ -333,8 +322,8 @@ const RELICS=[
    f:()=>S.party.forEach(p=>{p.berserk=(p.berserk||0)+1;})},
   {id:"thorncrown",  name:"CROWN OF THORNS",  desc:"foes that strike any hero take back 25% of the damage they deal (stacks with Thornmail)",
    f:()=>S.party.forEach(p=>{p.thorns=(p.thorns||0)+1;})},
-  {id:"echolocket",  name:"ECHO LOCKET",      desc:"when this run ends you bank 40% more Echoes — the currency spent at The Threshold on permanent upgrades",
-   f:()=>{S.echoBonus=(S.echoBonus||0)+0.4;}}
+  {id:"echolocket",  name:"GILDED LOCKET",    desc:"the party finds 30% more gold for the rest of this run",
+   f:()=>{S.goldBonus=(S.goldBonus||0)+0.3;}}
 ];
 function ownedRelics(){return S.relics||[];}
 function grantRelicChoice(after){
@@ -493,8 +482,8 @@ const SKILL_DESC={
 };
 function xpForLevel(l){return Math.max(0,Math.round(50*(l-1)*(l-1)-13*(l-1)));}
 // Per-character leveling pace, tuned so killers lead slightly and no one is stranded:
-// Caela (support, few kills) 0.85 · Vann (tank — misses, rarely finishes) 0.9 · Orrin (kill-stealer) 1.0
-const XP_RATE={lyra:0.85,brom:0.9};
+// Caela (support, few kills) 0.78 · Vann (tank — misses, rarely finishes) 0.9 · Orrin (kill-stealer) 1.0
+const XP_RATE={lyra:0.78,brom:0.9};
 function xpRate(p){return (p&&XP_RATE[p.id])||1;}
 function xpNeeded(p,l){return Math.round(xpForLevel(l)*xpRate(p));}
 const MAXLVL=999;
@@ -515,7 +504,7 @@ function newState(){
     steps:0, calm:0, kills:0, deaths:0, rises:0,
     combat:null, mapOn:false, over:false,
     chant:0, bossSummoned:0, boonQueue:[], skillQueue:[], tipsSeen:{}, riddleBag:[], riddleSeen:0, pending:null,
-    relics:[], echoBonus:0,
+    relics:[], echoBonus:0, goldBonus:0,
     t0:Date.now()
   };
 }
@@ -836,7 +825,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b56";
+const BUILD="b58";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -879,7 +868,6 @@ const ACHIEVEMENTS=[
   {id:"butcher",   name:"Butcher of the Deep",desc:"Slay 1000 foes (lifetime)"},
   {id:"persistent",name:"Persistent",      desc:"Complete 10 runs"},
   {id:"dedicated", name:"Dedicated",       desc:"Complete 50 runs"},
-  {id:"attuned",   name:"Attuned",         desc:"Max out a Threshold power"},
   {id:"unbowed",   name:"Unbowed",         desc:"Rise from death and carry on"},
   {id:"devoted",   name:"Devoted",         desc:"Keep a 7-day Daily streak"}
 ];
@@ -893,23 +881,13 @@ function evalAchievements(run){
   if(bd>=20)unlock("demigod"); if(bd>=30)unlock("mythic"); if(bd>=40)unlock("ascendant");
   if(META.totalKills>=100)unlock("slayer"); if(META.totalKills>=1000)unlock("butcher");
   if(META.runs>=10)unlock("persistent"); if(META.runs>=50)unlock("dedicated");
-  if(META_UPGRADES.some(u=>metaTier(u.id)>=u.max))unlock("attuned");
   if(META.totalRises>0)unlock("unbowed");
   if(META.daily&&META.daily.streak>=7)unlock("devoted");
   return got;
 }
 
 // Apply purchased meta-upgrades to a freshly-created run state.
-function applyMeta(st){
-  const v=metaTier("vigor"); if(v)st.party.forEach(p=>{const add=v*8;p.maxhp+=add;p.hp+=add;});
-  const f=metaTier("fortune"); if(f)st.gold+=f*45;
-  const pr=metaTier("provision"); if(pr){st.potions=Math.min(MAX_POTIONS,st.potions+pr); if(pr>=3)st.elixirs=Math.min(MAX_ELIXIRS,st.elixirs+1);}
-  const w=metaTier("whetstone"); if(w)st.party.forEach(p=>{p.w.b+=w;});
-  const fs=metaTier("foresight");
-  if(fs){ st.party.forEach(p=>{p.xp=xpNeeded(p,1+fs);}); checkLevelUpSilently(st); }
-  const rs=metaTier("resonance");
-  if(rs){ for(let i=0;i<rs;i++){ st.party.forEach(p=>{ const pool=BOONS.filter(b=>b.t===0); pool[Math.floor(Math.random()*pool.length)].f(p); }); } }
-}
+function applyMeta(st){/* The Threshold has been removed — every descent begins even. */}
 // Level the party up to match st.xp without UI side-effects (used by Foresight on run start).
 function checkLevelUpSilently(st){
   st.party.forEach(p=>{
@@ -2786,6 +2764,7 @@ function grantSpoils(){
   let gold=0;
   c.foes.forEach(f=>{gold+=f.gold;});
   if(regionIndex()===0)gold=Math.round(gold*1.1);
+  gold=Math.round(gold*(1+(S.goldBonus||0)));
   // Safety net: credit any unawarded kills (e.g. odd death paths) to whoever last hit them.
   c.foes.forEach(f=>{ if(f.hp<=0&&!f.xpGiven){awardKillXp(f, f.lastHitBy||S.party.find(q=>q.alive)); } });
   S.gold+=gold;S.kills+=c.foes.length;
@@ -3000,19 +2979,17 @@ function loseGame(){
   stopMusic();
   // Fill in concrete implications for each choice.
   const goldKept=Math.floor(S.gold*0.4), goldLost=S.gold-goldKept;
-  let echoes=Math.round(echoesFor(S.depth,S.kills)*(1+(S.echoBonus||0)));
-  if(S.daily&&META.daily.claimed===todayStr())echoes=0;
   const risen=S.rises||0;
   const riseEl=document.getElementById("go_rise");
   if(riseEl)riseEl.innerHTML=
     `Keep <b>every level, boon &amp; relic</b> — but the fall takes its toll: <b style="color:var(--blood)">all weapons are lost</b> (reset to bare hands), you wake at <b>~45% HP / 50% SP</b>, and it costs <b>${goldLost}g</b> (you keep ${goldKept}g). You'll need to re-arm from shops and the wardens you slay.<br>`+
-    `<span style="color:#7d7490">Echoes bank only when a run ends — so the deeper you ultimately reach, the bigger the eventual payout.${risen?` You've risen ${risen}× this run.`:""}</span>`;
+    `<span style="color:#7d7490">Your fall is not yet written into the Chronicle.${risen?` You've risen ${risen}× this run.`:""}</span>`;
   const endEl=document.getElementById("go_end");
   if(endEl)endEl.innerHTML=
-    `Bank <b style="color:#b88cff">✦ ${echoes} Echoes</b> now${echoes?` toward permanent powers at <b>The Threshold</b>`:` (today's Daily already paid out)`}. Your records &amp; deeds are kept.<br>`+
-    `<span style="color:#7d7490">This descent's depth, gold and party reset — you begin again at Depth 1, but stronger for what you buy.</span>`;
+    `This descent is written into <b>the Chronicle</b> — its depth, deeds and any new achievements are kept forever.<br>`+
+    `<span style="color:#7d7490">Depth, gold and party reset — you begin a fresh descent at Depth 1.</span>`;
   const rb=document.getElementById("retry");
-  if(rb)rb.textContent=echoes?("END RUN — BANK ✦ "+echoes+" ECHOES"):"END RUN";
+  if(rb)rb.textContent="END RUN";
   document.getElementById("gameover").classList.remove("hidden");
 }
 function riseAgain(){
@@ -3035,10 +3012,7 @@ function endRun(){
   const mins=Math.max(1,Math.round((Date.now()-S.t0)/60000));
   const lvl=S.party[0].lvl;
 
-  // —— Echo payout (daily: only the first attempt each day pays, to discourage seed-farming) ——
-  let earned=Math.round(echoesFor(S.depth,S.kills)*(1+(S.echoBonus||0)));
-  if(isDaily && META.daily.claimed===todayStr()) earned=0;
-  META.echoes+=earned; META.totalEchoes+=earned; META.runs+=1;
+  META.runs+=1;
   META.bestDepth=Math.max(META.bestDepth,S.depth);
   META.bestLevel=Math.max(META.bestLevel,lvl);
   META.totalKills+=S.kills;
@@ -3046,7 +3020,6 @@ function endRun(){
   // —— Daily record ——
   if(isDaily){
     if(S.depth>META.daily.bestDepth)META.daily.bestDepth=S.depth;
-    if(earned>0)META.daily.claimed=todayStr();
   }
 
   // —— Run history (most recent first, keep 12) ——
@@ -3072,10 +3045,7 @@ function endRun(){
   else if(S.depth>=5)g+="DELVER";
   else g+="WANDERER";
   document.getElementById("rgrade").textContent=g;
-  let echoLine = earned>0
-    ? `<b style="color:#b88cff">✦ ${earned} Echoes</b> drift up from the deep.<br>`
-    : (isDaily?`<span style="color:#7d7490">Today's Daily already paid its Echoes.</span><br>`:``);
-  echoLine += `<span style="color:#7d7490;font-size:11px">${META.echoes} Echoes saved · best depth ${META.bestDepth} · ${META.runs} runs`+
+  let echoLine = `<span style="color:#7d7490;font-size:11px">best depth ${META.bestDepth} · ${META.runs} runs`+
     (isDaily?` · daily streak ${META.daily.streak}`:``)+`</span>`;
   if(newAch.length){
     echoLine += `<br><span style="color:#ffd23f;font-size:11px">★ Unlocked: ${newAch.map(a=>a.name).join(" · ")}</span>`;
@@ -3110,7 +3080,7 @@ function serialize(){
     party:S.party,gold:S.gold,potions:S.potions,elixirs:S.elixirs,xp:S.xp,trains:S.trains,
     steps:S.steps,calm:S.calm,kills:S.kills,deaths:S.deaths,rises:S.rises,
     bossSummoned:S.bossSummoned,pending:S.pending||null,floors:S.floors,boonQueue:S.boonQueue||[],skillQueue:S.skillQueue||[],riddleBag:S.riddleBag||[],lastRiddle:S.lastRiddle,tipsSeen:S.tipsSeen||{},
-    relics:S.relics||[],echoBonus:S.echoBonus||0,
+    relics:S.relics||[],echoBonus:S.echoBonus||0,goldBonus:S.goldBonus||0,
     elapsed:Date.now()-S.t0});
 }
 function saveGame(){if(S&&S.daily)return;
@@ -3139,7 +3109,7 @@ function bootFrom(d){
   Object.assign(S,{depth:d.depth,x:d.x,y:d.y,dir:d.dir,grid:d.grid,bossCell:d.bossCell,
     shop:d.shop,key:d.key,party:d.party,gold:d.gold,potions:Math.min(MAX_POTIONS,d.potions||0),elixirs:Math.min(MAX_ELIXIRS,d.elixirs||0),
     xp:d.xp,trains:d.trains,steps:d.steps,calm:d.calm,kills:d.kills,deaths:d.deaths,
-    rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{},relics:d.relics||[],echoBonus:d.echoBonus||0});
+    rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{},relics:d.relics||[],echoBonus:d.echoBonus||0,goldBonus:d.goldBonus||0});
   S.visited=new Set(d.visited);S.trod=new Set(d.trod);S.traps=new Set(d.traps);S.sprung=new Set(d.sprung);
   S.riddle=RIDDLES[d.riddleIdx]||RIDDLES[0];S.riddleOrder=d.riddleOrder||null;
   S.bossSummoned=+S.bossSummoned||0;
@@ -3193,7 +3163,7 @@ function boot(daily){
   ["intro","gameover","runend","threshold","chronicle","dailyscreen"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add("hidden");});
   if(daily){
     log("◆ DAILY CHALLENGE — "+todayStr()+". The same Deep for every delver today.","arc");
-    log("No Threshold powers here. Just you and the seed.","gold");
+    log("One seed for the whole world. Just you and the dark.","gold");
   } else {
     log("DEPTH 1 — The Cellars. The door seals behind you.");
     log("Somewhere below, a harp string snaps in the dark…","arc");
@@ -3239,53 +3209,6 @@ document.getElementById("loreback").onclick=()=>{
   document.getElementById("lorescreen").classList.add("hidden");
   document.getElementById("intro").classList.remove("hidden");
 };
-// ===================== THE THRESHOLD (meta-upgrade shop) =====================
-let __thresholdReturn="intro";
-function openThreshold(from){
-  __thresholdReturn=from||"intro";
-  ["intro","runend","gameover"].forEach(id=>document.getElementById(id).classList.add("hidden"));
-  renderThreshold();
-  document.getElementById("threshold").classList.remove("hidden");
-}
-function closeThreshold(){
-  document.getElementById("threshold").classList.add("hidden");
-  document.getElementById(__thresholdReturn).classList.remove("hidden");
-  if(typeof refreshTitleMeta==="function")refreshTitleMeta();
-}
-function renderThreshold(){
-  document.getElementById("th_balance").textContent="✦ "+META.echoes+" Echoes";
-  const rows=META_UPGRADES.map(u=>{
-    const tier=metaTier(u.id);
-    const maxed=tier>=u.max;
-    const cost=maxed?0:u.cost(tier+1);
-    const afford=META.echoes>=cost;
-    const pips=Array.from({length:u.max},(_,i)=>i<tier?"◆":"◇").join("");
-    return `<div style="border:1px solid #2a2240;border-radius:6px;padding:8px 10px;margin-bottom:7px;background:var(--panel)">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <b style="color:#cbbdf0;letter-spacing:1px">${u.name}</b>
-        <span style="color:#6a5f80;font-size:11px;letter-spacing:2px">${pips}</span>
-      </div>
-      <div style="color:#8a7fa0;font-size:11px;margin:3px 0 7px">${maxed?"— fully attuned —":u.desc(tier+1)}</div>
-      ${maxed
-        ? `<button class="thbuy" disabled style="opacity:.5">MAX</button>`
-        : `<button class="thbuy" data-up="${u.id}" ${afford?"":"disabled"} style="${afford?"":"opacity:.5"}">BUY · ✦ ${cost}</button>`}
-    </div>`;
-  }).join("");
-  document.getElementById("th_list").innerHTML=rows;
-  document.querySelectorAll("#th_list .thbuy").forEach(b=>onTap(b,()=>{
-    const id=b.dataset.up; if(!id)return;
-    const u=META_UPGRADES.find(x=>x.id===id); const tier=metaTier(id);
-    if(tier>=u.max)return;
-    const cost=u.cost(tier+1);
-    if(META.echoes<cost)return;
-    META.echoes-=cost;
-    META.upgrades[id]=tier+1;
-    saveMeta();
-    if(typeof sfx!=="undefined")sfx.levelup&&sfx.levelup();
-    renderThreshold();
-  }));
-}
-document.getElementById("th_back").onclick=closeThreshold;
 
 // ===================== DAILY CHALLENGE screen =====================
 function renderDaily(){
@@ -3295,7 +3218,7 @@ function renderDaily(){
   document.getElementById("daily_info").innerHTML=
     `<b>${today}</b><br>`+
     `today's best: <b>Depth ${todayBest||"—"}</b> · streak: <b>${D.streak||0}</b> day${(D.streak===1)?"":"s"}<br>`+
-    `<span style="color:#7d7490;font-size:11px">${claimed?"Echoes already earned today — replay for score only":"reach as deep as you can to earn Echoes"}</span>`;
+    `<span style="color:#7d7490;font-size:11px">one attempt sets your depth for the day — replays are for practice</span>`;
 }
 function openDaily(){
   ["intro","runend"].forEach(id=>document.getElementById(id).classList.add("hidden"));
@@ -3311,7 +3234,7 @@ function renderChronicle(){
   document.getElementById("chron_stats").innerHTML=
     `Best Depth <b style="color:var(--gold)">${META.bestDepth}</b> · Best Level <b>${META.bestLevel}</b><br>`+
     `${META.runs} runs · ${META.totalKills} foes slain · ${META.totalRises||0} times risen<br>`+
-    `<b style="color:#b88cff">✦ ${META.totalEchoes}</b> Echoes earned all-told`;
+    `Daily streak <b style="color:#7fd0ff">${(META.daily&&META.daily.streak)||0}</b>`;
   const runs=META.history||[];
   document.getElementById("chron_runs").innerHTML = runs.length
     ? runs.map(r=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #211b34;padding:3px 0">
@@ -3332,12 +3255,10 @@ function openChronicle(){
 }
 document.getElementById("titlechronicle").onclick=()=>openChronicle();
 document.getElementById("chron_back").onclick=()=>{document.getElementById("chronicle").classList.add("hidden");document.getElementById("intro").classList.remove("hidden");refreshTitleMeta();};
-document.getElementById("tothreshold").onclick=()=>openThreshold("runend");
-document.getElementById("titlethreshold").onclick=()=>openThreshold("intro");
 function refreshTitleMeta(){
   const el=document.getElementById("titlemeta"); if(!el)return;
-  if(META.runs>0||META.echoes>0){
-    el.innerHTML="✦ "+META.echoes+" Echoes · best depth "+META.bestDepth+" · "+META.runs+" runs";
+  if(META.runs>0){
+    el.innerHTML="best depth "+META.bestDepth+" · "+META.runs+" runs";
   } else { el.textContent=""; }
 }
 refreshTitleMeta();
