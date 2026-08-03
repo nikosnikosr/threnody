@@ -3,13 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Threnody">
-<meta name="theme-color" content="#0a0812">
 <title>Threnody: The Endless Deep</title>
 <style>
   :root{
@@ -3483,13 +3476,6 @@ window.addEventListener("keydown",e=>{
   else if(k==="arrowdown"||k==="s"){snapLog();S.dir=(S.dir+2)%4;sfx.step();render();}
   else if(k==="m"||k===" "){e.preventDefault();toggleMap();}   // M or Space toggles the map
 });
-</script>
-<script>
-if("serviceWorker" in navigator && location.protocol==="https:"){
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
-  let _swReloaded=false;
-  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(_swReloaded)return;_swReloaded=true;location.reload();});
-}
 </script>
 </body>
 </html>
