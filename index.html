@@ -44,7 +44,7 @@
   #musictoggle.off{opacity:.5;text-decoration:line-through}
   #leavetop{position:absolute;top:6px;right:6px;font-size:11px;color:var(--gold-dim,#7a5520);border:1px solid #7a5520;
     background:rgba(0,0,0,.55);border-radius:3px;padding:4px 10px;letter-spacing:1px;z-index:2}
-  #log{flex:0 0 auto;min-height:52px;max-height:12dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block;
+  #log{flex:0 0 auto;min-height:52px;max-height:12dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:block;
     font-size:12px;line-height:1.45;padding:6px 8px;margin-top:6px;border:1px solid #2a2240;border-radius:4px;background:var(--panel)}
   #log::-webkit-scrollbar{width:5px} #log::-webkit-scrollbar-thumb{background:#3a2f58;border-radius:3px}
   #log div{flex:0 0 auto}
@@ -62,7 +62,7 @@
   .bar i{display:block;height:100%;border-radius:2px;transition:width .25s}
   .bar.hp i{background:var(--hp)} .bar.sp i{background:var(--sp)}
   .pc .num{color:#7d7490;font-size:9px;display:flex;justify-content:space-between}
-  #controls{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-start;padding:6px 0 8px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #controls{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-start;padding:6px 0 8px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   #dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:280px;margin:0 auto;width:100%}
   button.ctl{font-family:inherit;font-size:20px;color:var(--phos);background:var(--panel);border:1px solid var(--phos-dim);
     border-radius:6px;padding:14px 0;letter-spacing:1px;text-shadow:0 0 6px rgba(255,182,72,.4);touch-action:manipulation}
@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b63</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b64</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -876,7 +876,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b63";
+const BUILD="b64";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -1811,12 +1811,29 @@ const ctl=document.getElementById("controls");
 // button that just rendered into the same spot — so we ignore it. Deliberate taps are far slower.
 let __lastActionAt=0;
 function onTap(el,fn){
-  el.addEventListener("click",e=>{
+  // iOS can suppress the synthesized click when the finger wobbles inside a
+  // scrollable container — so act on touchend directly, guarded against real scrolls.
+  let sx=0,sy=0,moved=false;
+  const fire=e=>{
     const now=Date.now();
-    if(now-__lastActionAt<200)return;   // swallow a too-fast repeat
+    if(now-__lastActionAt<200)return;   // swallow the ghost click / fast repeats
     __lastActionAt=now;
     fn(e);
-  });
+  };
+  el.addEventListener("touchstart",e=>{
+    const t=(e.changedTouches&&e.changedTouches[0])||{clientX:0,clientY:0};
+    sx=t.clientX;sy=t.clientY;moved=false;
+  },{passive:true});
+  el.addEventListener("touchmove",e=>{
+    const t=(e.changedTouches&&e.changedTouches[0])||{clientX:0,clientY:0};
+    if(Math.abs(t.clientX-sx)>10||Math.abs(t.clientY-sy)>10)moved=true;
+  },{passive:true});
+  el.addEventListener("touchend",e=>{
+    if(moved)return;                    // it was a scroll, not a tap
+    if(e.cancelable)e.preventDefault(); // stop the ghost click
+    fire(e);
+  },{passive:false});
+  el.addEventListener("click",fire);    // mouse / keyboard / desktop path
 }
 
 function showExploreControls(){
