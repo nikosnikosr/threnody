@@ -70,7 +70,7 @@
   button.ctl:focus-visible{outline:2px solid var(--arc)}
   #acts{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;flex-shrink:0}
   button.act{font-family:inherit;font-size:11px;letter-spacing:1px;color:var(--bone);background:var(--panel);
-    border:1px solid #3a2f58;border-radius:6px;padding:8px 4px;touch-action:manipulation}
+    border:1px solid #3a2f58;border-radius:6px;padding:8px 4px;touch-action:none;-webkit-user-select:none;user-select:none}
   button.act small{display:block;color:#7d7490;font-size:9px;margin-top:2px;letter-spacing:0;white-space:normal;line-height:1.35}
   button.act:active{background:#241d38;border-color:var(--phos)}
   button.act:disabled{opacity:.35}
@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b64</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b65</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -876,7 +876,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b64";
+const BUILD="b65";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -1833,6 +1833,13 @@ function onTap(el,fn){
     if(e.cancelable)e.preventDefault(); // stop the ghost click
     fire(e);
   },{passive:false});
+  el.addEventListener("touchcancel",e=>{
+    if(!moved)fire(e);                  // the system stole a stationary tap — honor it anyway
+  });
+  let pdx=0,pdy=0,pmoved=false;
+  el.addEventListener("pointerdown",e=>{pdx=e.clientX;pdy=e.clientY;pmoved=false;});
+  el.addEventListener("pointermove",e=>{if(Math.abs(e.clientX-pdx)>10||Math.abs(e.clientY-pdy)>10)pmoved=true;});
+  el.addEventListener("pointerup",e=>{if(!pmoved)fire(e);});
   el.addEventListener("click",fire);    // mouse / keyboard / desktop path
 }
 
