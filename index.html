@@ -124,7 +124,7 @@
   <p><b>Thessaly</b>, once the keep's own songkeeper, broke the song to wake what it silenced. He carries the Harp ever downward; with every floor he descends, the note unravels and the dark climbs one step closer to the surface.</p>
   <p>Three go down after him. If they fail, the Deep comes up.</p>
   <p style="color:#7a5520;font-size:11px">Tap a hero on the title to learn their story · progress saves automatically</p>
-  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b65</p>
+  <p style="color:#4a3a18;font-size:9px;letter-spacing:2px">BUILD b66</p>
   <div style="display:flex;gap:6px;justify-content:center;margin:6px 0">
     <button class="lore" data-lore="brom">VANN</button>
     <button class="lore" data-lore="lyra">CAELA</button>
@@ -876,7 +876,7 @@ function rightv(){const r=(S.dir+1)%4;return[DX[r],DY[r]];}
 const FOG=["ff","dd","99","55"];
 
 let floaters=[],particles=[],hurtVignette=0,mazeT=0,bobT=0,lvlFlash=0;
-const BUILD="b65";
+const BUILD="b66";
 
 /* ===================== META-PROGRESSION (persists across all runs) ===================== */
 const META_KEY="threnody-meta";
@@ -2965,6 +2965,17 @@ const BOONS=[
   {n:"Bulwark",       d:"+8 innate armor",             t:2,f:p=>{p.innate=(p.innate||0)+8;}}
 ];
 const MILESTONE_EVERY=10;  // levels divisible by this offer an "Ascension" (greater+ only)
+function rehydrateBoonQueue(){
+  if(!S.boonQueue||!S.boonQueue.length)return;
+  S.boonQueue.forEach(job=>{
+    job.picks=(job.picks||[]).map(pk=>{
+      if(pk&&typeof pk.f==="function")return pk;
+      const src=BOONS.find(b=>pk&&b.n===pk.n);
+      return src||null;
+    }).filter(Boolean);
+  });
+  S.boonQueue=S.boonQueue.filter(j=>j.picks&&j.picks.length&&pcById(j.pid));
+}
 function offerBoon(p){
   const maxTier = p.lvl>=25 ? 2 : p.lvl>=10 ? 1 : 0;
   const ascension = p.lvl % MILESTONE_EVERY === 0 && maxTier>=1;
@@ -3034,9 +3045,12 @@ function showBoonPicker(){
   ctl.innerHTML=`<div id="actorline" style="color:var(--gold)">${title}<small>${sub}</small></div>
     <div id="acts">${btns}</div>`;
   ctl.querySelectorAll("button.act").forEach(b=>onTap(b,()=>{
-    const boon=job.picks[+b.dataset.boon];
-    boon.f(p);sfx.levelup();
-    log(p.name+" gains <b>"+boon.n+"</b> — "+boon.d+".","arc");
+    let boon=job.picks[+b.dataset.boon];
+    if(boon&&typeof boon.f!=="function")boon=BOONS.find(x=>x.n===boon.n)||boon;
+    try{ if(boon&&typeof boon.f==="function"){boon.f(p);log(p.name+" gains <b>"+boon.n+"</b> — "+boon.d+".","arc");}
+         else log("The boon slips away like a half-remembered song.","arc");
+    }catch(err){ log("The boon falters — but "+p.name+" presses on.","arc"); }
+    try{sfx.levelup();}catch(e){}
     S.boonQueue.shift();
     renderHud();renderParty();
     showBoonPicker();
@@ -3251,6 +3265,7 @@ function bootFrom(d){
     xp:d.xp,trains:d.trains,steps:d.steps,calm:d.calm,kills:d.kills,deaths:d.deaths,fights:d.fights||0,potsDrunk:d.potsDrunk||0,
     rises:d.rises,bossSummoned:d.bossSummoned,pending:d.pending||null,floors:d.floors||{},boonQueue:d.boonQueue||[],skillQueue:d.skillQueue||[],riddleBag:d.riddleBag||[],lastRiddle:d.lastRiddle,tipsSeen:d.tipsSeen||{},relics:d.relics||[],echoBonus:d.echoBonus||0,goldBonus:d.goldBonus||0});
   S.visited=new Set(d.visited);S.trod=new Set(d.trod);S.traps=new Set(d.traps);S.sprung=new Set(d.sprung);
+  rehydrateBoonQueue();
   S.riddle=RIDDLES[d.riddleIdx]||RIDDLES[0];S.riddleOrder=d.riddleOrder||null;
   S.bossSummoned=+S.bossSummoned||0;
   S.boonQueue=d.boonQueue||[];S.skillQueue=d.skillQueue||[];
